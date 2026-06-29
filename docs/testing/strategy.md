@@ -45,6 +45,14 @@ tool-call correctness, latency, and provider cost.
 Once the dashboard exists, Playwright verifies metric labels, provenance,
 before/after replay, redaction, retention controls, and empty/error states.
 
+### Documentation contract tests
+
+User configuration snippets are fixtures, not decorative pseudocode. Tests
+parse the Token Shuffle JSONC, OpenCode JSONC, and Pi JSON examples and verify
+that documented route paths, environment-variable names, CLI commands, and
+defaults match the supported release. External agent compatibility fixtures are
+reviewed when the tested agent version changes.
+
 ### Workstation distribution tests
 
 Platform CI smoke-tests the packaged Tauri shell and Node sidecar on supported

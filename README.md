@@ -8,6 +8,15 @@ user to judge every optimization.
 The project is in **v0.0 — foundation**. The current executable is only a health
 endpoint; it does not yet forward inference traffic.
 
+## Documentation
+
+- **Application users:** [Getting started](docs/getting-started/README.md)
+- **Documentation index:** [docs/README.md](docs/README.md)
+- **Contributors:** [CONTRIBUTING.md](CONTRIBUTING.md)
+
+The getting-started guide clearly marks planned v0.1 and v0.2 behavior. The
+current v0.0 executable is not ready to receive agent inference traffic.
+
 ## Product stance
 
 - Observe before transforming.
@@ -16,13 +25,6 @@ endpoint; it does not yet forward inference traffic.
 - Preserve an explainable replay for each transformation.
 - Keep payloads local by default and make retention explicit.
 - Prefer quality over an impressive savings percentage.
-
-Start with [the vision](docs/vision.md), [token economics](docs/product/token-economics.md),
-the [architecture](docs/architecture/overview.md), and the
-[package map](docs/architecture/package-map.md). The accepted
-[technology stack](docs/architecture/technology-stack.md) defines the target
-runtime, UI, storage, testing, and workstation distribution. The
-[roadmap](docs/roadmap.md) defines what belongs in each release.
 
 ## Local development
 
@@ -48,5 +50,3 @@ apps/web/         Reserved boundary for the local dashboard
 packages/core/    Provider-neutral domain rules and metrics
 docs/             Vision, ADRs, architecture, testing, and roadmap
 ```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) before making a code change.

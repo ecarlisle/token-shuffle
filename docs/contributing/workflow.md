@@ -17,6 +17,10 @@ Package extraction must satisfy the trigger in the
 [package and module map](../architecture/package-map.md), preserve dependency
 direction, and include an ADR when it changes architectural ownership.
 
+Treat commands and configuration in user documentation as public contracts.
+When behavior changes, update the relevant getting-started guide and its parsed
+example fixture in the same change.
+
 ## Verification
 
 Run:
