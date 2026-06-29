@@ -18,6 +18,8 @@ Exit: proposed ADRs reviewed; `pnpm check` is green.
 - Session/request correlation and versioned observation events.
 - Token counting with explicit provenance.
 - Structural repetition, stable-prefix, cache usage, and latency metrics.
+- Tool-definition and tool-output token-share metrics.
+- Response-cache eligibility observations without serving cached responses.
 - SQLite persistence with retention and redaction tests.
 
 Exit: byte-preserving fixtures pass; a real supported client completes coding
@@ -35,7 +37,9 @@ the UI never equates cache discounts with tokens avoided.
 
 ## v0.3 — First safe transforms
 
-- Opt-in exact-redundancy and stale tool-result policies chosen from v0.1 data.
+- Opt-in deterministic tool-output and exact-redundancy policies chosen from
+  v0.1 data.
+- Shadow evaluation of dynamic tool-definition selection with retry accounting.
 - Per-policy preview, explanation, limits, and kill switch.
 - Baseline-versus-policy replay harness.
 - Session-level quality and net-token comparison.
@@ -46,13 +50,24 @@ on the accepted fixture corpus.
 ## v0.4 — Conversation compaction
 
 - Model-assisted or deterministic old-turn summaries.
+- Structured compacted state with source ranges and invalidation.
 - Optimization-token accounting and summary invalidation.
 - Constraint-retention and long-session replay tests.
 
 Exit: compaction is beneficial over full sessions, including the cost to create
 summaries and any extra agent turns.
 
-## v0.5 — Protocol and provider breadth
+## v0.5 — Retrieval and externalized context
+
+- Addressable local artifacts for full tool outputs, files, and old turns.
+- Hybrid retrieval using exact identifiers before semantic similarity.
+- A supported path for the model to request omitted or additional context.
+- Retrieval-miss, retry, and full-session token accounting.
+
+Exit: retrieved context improves net session usage on accepted fixtures without
+silently preventing recovery of omitted original content.
+
+## v0.6 — Protocol and provider breadth
 
 - Anthropic Messages ingress.
 - Multiple upstream adapters and provider-aware cache reporting.
@@ -68,6 +83,7 @@ provider-specific semantics.
 - Export/import, retention controls, and recovery behavior.
 - Performance, privacy, and threat-model review.
 
-Possible later work: retrieval-backed memory, stateful provider continuations,
-policy plugins, team aggregation, and cost-aware model routing. None should be
-pulled forward merely to broaden the feature list.
+Possible later work: stateful provider continuations, generalized delta
+prompting, conservative exact-response caching, policy plugins, team
+aggregation, and cost-aware model routing. Routing remains a separate economic
+track. None should be pulled forward merely to broaden the feature list.

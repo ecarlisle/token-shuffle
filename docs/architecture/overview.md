@@ -47,6 +47,24 @@ an unnecessary local distributed system.
 The hot path must not wait for dashboard writes. Backpressure and client
 disconnect propagation are first-class integration-test concerns.
 
+## Externalized context model
+
+Original context may be stored locally as immutable, addressable artifacts.
+Policies can select exact ranges, retrieve relevant artifacts, or produce
+versioned summaries before constructing the forwarded request. References are
+never assumed to be meaningful to a stateless model: selected content must be
+injected, exposed through a retrieval tool, or backed by explicit provider
+state.
+
+The decision event records source artifact identifiers, policy order, omitted
+ranges, summary versions, count provenance, and the final request-level token
+impact. This supports replay without attributing the same saved tokens to
+externalization, retrieval, and compaction simultaneously.
+
+Response caching is a separate pre-inference decision. Cache entries are scoped
+by authorization and environment, and requests involving changing external
+state, side effects, or nondeterministic behavior are ineligible by default.
+
 ## Storage and privacy
 
 SQLite is appropriate for one local writer and dashboard readers. WAL mode may

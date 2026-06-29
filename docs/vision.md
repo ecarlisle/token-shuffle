@@ -48,3 +48,6 @@ largest possible compression ratio.
 4. Every transformation emits a reason and a replayable diff.
 5. Measurements carry their provenance and uncertainty.
 6. Quality gates can veto savings.
+7. Externalization is infrastructure; only final request reduction is counted.
+8. Response reuse, provider caching, routing, and literal reduction remain
+   separate optimization categories.
