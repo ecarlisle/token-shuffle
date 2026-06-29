@@ -9,9 +9,13 @@ agent client
     v
 loopback proxy
     |-- ingress validation
-    |-- observe / policy pipeline
+    |-- execution coordinator
+    |     |-- baseline measurement
+    |     |-- route candidates
+    |     |-- candidate-specific context
+    |     |-- cache eligibility
+    |     `-- provider attempts
     |-- immutable decision events
-    |-- provider adapter
     v
 inference provider
 
@@ -25,12 +29,14 @@ an unnecessary local distributed system.
 ## Package boundaries
 
 - `apps/proxy`: HTTP/SSE lifecycle, configuration, fail-open behavior, and
-  composition root.
+  composition root. Its internal execution coordinator owns application
+  sequencing; Fastify handlers remain transport adapters.
 - `packages/core`: provider-neutral request model, policy decisions, accounting,
-  and event contracts. It must not import Fastify or provider SDKs.
+  event concepts, and ports. It must not import Fastify, storage
+  implementations, or provider SDKs.
 - `apps/web`: read-only visualization first; policy editing comes later.
-- future `packages/providers-*`: protocol translation and provider-specific
-  usage/caching metadata.
+- future packages are extracted only when the triggers in the
+  [package and module map](package-map.md) are met.
 
 ## Request lifecycle
 
@@ -38,14 +44,22 @@ an unnecessary local distributed system.
 2. Parse only the protocol fields required for measurement.
 3. Calculate the baseline using the best available tokenizer and record its
    provenance.
-4. In observe mode, forward unchanged. In transform mode, run ordered policies;
-   any uncertainty or failure returns the original request.
-5. Stream the upstream response without buffering the full body.
-6. Capture usage trailers/events where the protocol provides them.
-7. Persist a redacted decision event asynchronously.
+4. Produce an ordered candidate route plan from explicit capabilities and
+   recorded policy inputs.
+5. Prepare context for the selected candidate. In observe mode it remains
+   semantically unchanged; transform uncertainty returns the original context.
+6. Evaluate exact-response cache eligibility using the prepared request, target,
+   scope, and policy versions.
+7. Execute the provider attempt and stream without buffering the full response.
+8. On eligible failure before response commitment, select the next candidate and
+   prepare context again for its tokenizer, limits, and capabilities.
+9. Capture usage events and persist a redacted decision event asynchronously.
 
 The hot path must not wait for dashboard writes. Backpressure and client
 disconnect propagation are first-class integration-test concerns.
+
+The execution coordinator owns this lifecycle. The route planner does not call
+providers or perform retries, and context policies do not select routes.
 
 ## Externalized context model
 

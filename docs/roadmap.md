@@ -13,8 +13,11 @@ Exit: proposed ADRs reviewed; `pnpm check` is green.
 
 ## v0.1 — Transparent observer
 
-- OpenAI-compatible Chat Completions ingress and one compatible upstream.
-- Correct buffered and SSE pass-through, cancellation, and provider errors.
+- OpenAI-compatible Chat Completions ingress and one compatible upstream,
+  implemented as internal modules rather than premature workspace packages.
+- An execution coordinator separate from Fastify handlers.
+- Correct buffered forwarding followed by SSE pass-through, cancellation, and
+  provider errors.
 - Session/request correlation and versioned observation events.
 - Token counting with explicit provenance.
 - Structural repetition, stable-prefix, cache usage, and latency metrics.
@@ -23,7 +26,8 @@ Exit: proposed ADRs reviewed; `pnpm check` is green.
 - SQLite persistence with retention and redaction tests.
 
 Exit: byte-preserving fixtures pass; a real supported client completes coding
-sessions through the proxy; default storage contains no raw content.
+sessions through the proxy; default storage contains no raw content; module
+boundaries match the package-map ownership rules.
 
 ## v0.2 — Evidence dashboard
 
@@ -72,6 +76,8 @@ silently preventing recovery of omitted original content.
 - Anthropic Messages ingress.
 - Multiple upstream adapters and provider-aware cache reporting.
 - Capability negotiation and compatibility matrix.
+- Extract provider or contract packages only where the second implementation
+  proves a stable shared interface.
 
 Exit: protocol suites prove equivalent domain events without flattening
 provider-specific semantics.

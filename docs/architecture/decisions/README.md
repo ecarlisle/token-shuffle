@@ -8,7 +8,9 @@ Proposed, Accepted, Superseded, or Rejected.
 - [0003 — Begin with OpenAI-compatible ingress](0003-openai-compatible-first.md)
 - [0004 — Local SQLite with privacy-first events](0004-local-storage-and-privacy.md)
 - [0005 — Token optimization portfolio](0005-token-optimization-portfolio.md)
+- [0006 — Evolutionary package boundaries](0006-evolutionary-package-boundaries.md)
 
 ADRs 0001–0004 remain **Proposed** and should become Accepted individually after
-the foundation review. ADR 0005 is **Accepted** because its recommendation was
-explicitly reviewed as the basis for future application decisions.
+the foundation review. ADRs 0005–0006 are **Accepted** because their
+recommendations were explicitly reviewed as the basis for future application
+decisions.

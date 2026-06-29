@@ -18,7 +18,8 @@ endpoint; it does not yet forward inference traffic.
 - Prefer quality over an impressive savings percentage.
 
 Start with [the vision](docs/vision.md), [token economics](docs/product/token-economics.md),
-and [the architecture](docs/architecture/overview.md). The
+the [architecture](docs/architecture/overview.md), and the
+[package map](docs/architecture/package-map.md). The
 [roadmap](docs/roadmap.md) defines what belongs in each release.
 
 ## Local development

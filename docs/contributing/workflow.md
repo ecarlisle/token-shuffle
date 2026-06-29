@@ -12,6 +12,11 @@ Keep code, tests, and documentation in the same branch and normally the same
 commit. Prefer small vertical slices. Avoid adding a provider abstraction until
 two concrete implementations expose the boundary.
 
+Do not create a workspace package solely because a module has a distinct name.
+Package extraction must satisfy the trigger in the
+[package and module map](../architecture/package-map.md), preserve dependency
+direction, and include an ADR when it changes architectural ownership.
+
 ## Verification
 
 Run:

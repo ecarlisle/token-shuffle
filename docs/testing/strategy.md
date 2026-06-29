@@ -27,6 +27,9 @@ An in-process fake provider verifies:
 - time-to-first-byte and streaming without full buffering;
 - abort propagation;
 - retries are never introduced invisibly;
+- no retry occurs after a response is committed;
+- failover re-prepares context for the next target's tokenizer, limits, and
+  capabilities;
 - measurement/storage failure still forwards traffic;
 - credentials and raw bodies do not enter default logs/events.
 
