@@ -45,6 +45,15 @@ tool-call correctness, latency, and provider cost.
 Once the dashboard exists, Playwright verifies metric labels, provenance,
 before/after replay, redaction, retention controls, and empty/error states.
 
+### Workstation distribution tests
+
+Platform CI smoke-tests the packaged Tauri shell and Node sidecar on supported
+macOS, Windows, and Linux targets. It verifies startup, single-instance behavior,
+port discovery, tray/window independence, graceful shutdown, signed update
+verification, migration, crash recovery, and uninstall retention choices.
+
+The proxy's protocol and domain suites remain runnable without Tauri.
+
 ## Definition of done
 
 A code change is complete when:

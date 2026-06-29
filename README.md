@@ -19,12 +19,16 @@ endpoint; it does not yet forward inference traffic.
 
 Start with [the vision](docs/vision.md), [token economics](docs/product/token-economics.md),
 the [architecture](docs/architecture/overview.md), and the
-[package map](docs/architecture/package-map.md). The
+[package map](docs/architecture/package-map.md). The accepted
+[technology stack](docs/architecture/technology-stack.md) defines the target
+runtime, UI, storage, testing, and workstation distribution. The
 [roadmap](docs/roadmap.md) defines what belongs in each release.
 
 ## Local development
 
-Requirements: Node.js 24 LTS and pnpm 11.
+Current scaffold requirements: Node.js 24 LTS and pnpm 11. The accepted
+production minimum is Node.js 24.15; implementation alignment is tracked in the
+roadmap.
 
 ```sh
 corepack enable

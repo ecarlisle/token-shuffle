@@ -29,6 +29,7 @@ The v0.1 repository intentionally remains small:
 apps/
   proxy/             Fastify entry point and initial internal modules
   web/               Local dashboard boundary
+  desktop/           Added later: thin Tauri workstation shell
 
 packages/
   core/              Provider-neutral domain rules and accounting
@@ -79,6 +80,12 @@ context, calculate savings, or implement retries.
 
 Owns the local dashboard. It consumes only the gateway API and must not read
 SQLite files or internal event tables directly.
+
+### Future `apps/desktop`
+
+Owns the Tauri workstation shell, tray, updater, native credentials, and proxy
+sidecar supervision. It contains no proxy business logic and is added only at
+the workstation-distribution roadmap stage.
 
 ## Execution coordinator
 

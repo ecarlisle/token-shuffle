@@ -7,12 +7,16 @@ exit criteria are met.
 
 - Agree on product vocabulary, architecture, privacy, and test strategy.
 - Create a strict TypeScript workspace and minimal loopback process.
+- Accept the target technology stack and record implementation-alignment work.
 - Keep inference routes disabled.
 
-Exit: proposed ADRs reviewed; `pnpm check` is green.
+Exit: foundation ADRs reviewed; the TypeScript 6 and Node 24.15 minimum migration
+is either completed or explicitly scheduled; `pnpm check` is green.
 
 ## v0.1 — Transparent observer
 
+- Adopt the accepted Node, TypeScript, Fastify, Undici, TypeBox, Pino, and
+  development-tooling baseline.
 - OpenAI-compatible Chat Completions ingress and one compatible upstream,
   implemented as internal modules rather than premature workspace packages.
 - An execution coordinator separate from Fastify handlers.
@@ -24,6 +28,8 @@ Exit: proposed ADRs reviewed; `pnpm check` is green.
 - Tool-definition and tool-output token-share metrics.
 - Response-cache eligibility observations without serving cached responses.
 - SQLite persistence with retention and redaction tests.
+- A dedicated `node:sqlite` worker with explicit SQL migrations and startup
+  version/integrity checks.
 
 Exit: byte-preserving fixtures pass; a real supported client completes coding
 sessions through the proxy; default storage contains no raw content; module
@@ -31,6 +37,9 @@ boundaries match the package-map ownership rules.
 
 ## v0.2 — Evidence dashboard
 
+- React 19.2 and Vite 8 SPA using REST for queries and SSE for live events.
+- TanStack Query, Router, and Table; Radix primitives; Tailwind design tokens;
+  Apache ECharts for evidence visualizations.
 - Local overview of sessions and provider/model usage.
 - Separate token, cache, cost, and latency metrics.
 - Request detail with structural breakdown and redacted replay.
@@ -64,7 +73,7 @@ summaries and any extra agent turns.
 ## v0.5 — Retrieval and externalized context
 
 - Addressable local artifacts for full tool outputs, files, and old turns.
-- Hybrid retrieval using exact identifiers before semantic similarity.
+- SQLite FTS5 retrieval using exact identifiers before semantic similarity.
 - A supported path for the model to request omitted or additional context.
 - Retrieval-miss, retry, and full-session token accounting.
 
@@ -81,6 +90,18 @@ silently preventing recovery of omitted original content.
 
 Exit: protocol suites prove equivalent domain events without flattening
 provider-specific semantics.
+
+## v0.7 — Workstation distribution
+
+- Tauri 2 shell with tray and dashboard window.
+- Packaged Node proxy sidecar with health supervision.
+- Optional launch at login and native credential integration.
+- Signed binaries/installers where supported and signed update artifacts for
+  macOS, Windows, and Linux.
+- Platform smoke tests, crash recovery, and upgrade/rollback exercises.
+
+Exit: installation, proxy operation with the window closed, update verification,
+and uninstall behavior pass on every supported platform.
 
 ## v1.0 — Trustworthy local release
 

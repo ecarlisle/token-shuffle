@@ -26,6 +26,11 @@ The proxy is a single local Node.js process. It serves the API and, once built,
 the dashboard assets. Keeping one process simplifies installation and prevents
 an unnecessary local distributed system.
 
+The production workstation distribution adds a thin Tauri shell that supervises
+this process and displays the dashboard. The proxy remains independently
+runnable and does not depend on the desktop window lifecycle. See the
+[technology stack](technology-stack.md).
+
 ## Package boundaries
 
 - `apps/proxy`: HTTP/SSE lifecycle, configuration, fail-open behavior, and

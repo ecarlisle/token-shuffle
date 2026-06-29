@@ -1,6 +1,6 @@
 # ADR 0001: TypeScript on Node.js
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-06-29
 
 ## Context
@@ -12,10 +12,17 @@ most familiar language.
 
 ## Decision
 
-Use strict TypeScript, Node.js 24 LTS, pnpm 11 workspaces, and Fastify for the local
-HTTP process. Use React with Vite when dashboard implementation begins. Keep
-tokenization behind a port so a native or WASM implementation can be introduced
-without changing domain rules.
+Use strict ESM TypeScript 6, Node.js 24 LTS with 24.15 as the minimum supported
+patch, pnpm 11 workspaces, Fastify 5, and an explicit Undici dependency for the
+local proxy. Use TypeBox/Ajv for runtime boundary schemas and Pino for redacted
+structured logs.
+
+Use React 19.2 with Vite 8 when dashboard implementation begins. Keep
+tokenization behind a port so TypeScript, native, or WASM implementations can be
+introduced without changing domain rules.
+
+The complete selection and phased adoption policy is defined in the
+[technology stack](../technology-stack.md).
 
 ## Consequences
 
@@ -24,3 +31,7 @@ without changing domain rules.
 - CPU-heavy tokenization must not block the event loop; profiling may lead to
   worker threads or a native component.
 - Node 24 is pinned rather than the current non-LTS release.
+- The foundation scaffold requires an explicit TypeScript 5.9-to-6 migration
+  before implementation is considered aligned with this ADR.
+- Direct provider HTTP adapters require more protocol tests than delegating to
+  provider SDKs, but preserve pass-through control.
