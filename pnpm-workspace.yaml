@@ -1,0 +1,10 @@
+packages:
+  - apps/*
+  - packages/*
+
+allowBuilds:
+  esbuild: true
+
+# CI performs a frozen install explicitly; commands should not mutate the
+# dependency tree as a hidden pre-run side effect.
+verifyDepsBeforeRun: false

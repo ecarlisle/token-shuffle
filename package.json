@@ -1,0 +1,23 @@
+{
+  "name": "token-shuffle",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A local, observable inference proxy for reducing agent context safely.",
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "build": "pnpm --recursive build",
+    "check": "pnpm typecheck && pnpm test",
+    "dev": "pnpm --filter @token-shuffle/proxy dev",
+    "test": "pnpm --recursive test",
+    "typecheck": "pnpm --recursive typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.17"
+  }
+}
