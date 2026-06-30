@@ -45,8 +45,9 @@ runnable and does not depend on the desktop window lifecycle. See the
 
 ## Request lifecycle
 
-1. Assign a local request and session identifier.
-2. Parse only the protocol fields required for measurement.
+1. Assign a local request ID, an attempt ID, and an explicit or inferred session
+   association.
+2. Retain the raw request body and parse a separate measurement view.
 3. Calculate the baseline using the best available tokenizer and record its
    provenance.
 4. Produce an ordered candidate route plan from explicit capabilities and
@@ -56,15 +57,23 @@ runnable and does not depend on the desktop window lifecycle. See the
 6. Evaluate exact-response cache eligibility using the prepared request, target,
    scope, and policy versions.
 7. Execute the provider attempt and stream without buffering the full response.
-8. On eligible failure before response commitment, select the next candidate and
-   prepare context again for its tokenizer, limits, and capabilities.
-9. Capture usage events and persist a redacted decision event asynchronously.
+8. Propagate success, upstream failure, or cancellation without an automatic
+   retry in v0.1.
+9. Capture versioned usage and lifecycle events and persist them asynchronously.
 
 The hot path must not wait for dashboard writes. Backpressure and client
 disconnect propagation are first-class integration-test concerns.
 
 The execution coordinator owns this lifecycle. The route planner does not call
-providers or perform retries, and context policies do not select routes.
+providers or perform retries, and context policies do not select routes. Future
+retry or failover behavior requires a new decision rather than emerging from
+provider-library defaults.
+
+Observe mode forwards raw valid JSON body bytes unchanged. Authentication,
+hop-by-hop, host, length, cookie, origin, and internal headers follow an explicit
+replacement/removal policy. Buffered bodies and SSE event payloads are
+preserved; TCP chunk boundaries are not. See the
+[fidelity ADR](decisions/0009-transparent-fidelity-and-compatibility.md).
 
 ## Externalized context model
 

@@ -21,6 +21,7 @@ mistaken for current behavior.
 
 - [Vision](vision.md)
 - [Token economics](product/token-economics.md)
+- [Compatibility](compatibility.md)
 - [Roadmap](roadmap.md)
 - [Changelog](../CHANGELOG.md)
 

@@ -17,5 +17,7 @@ This project follows Keep a Changelog conventions while it is pre-release.
   Shuffle, OpenCode, Pi Coding Agent, and the web UI.
 - Accepted observe-first scope, OpenAI-compatible ingress, privacy retention,
   and strict local authentication/configuration decisions.
+- Accepted transparent fidelity, compatibility targets, no-retry execution,
+  event/session identity, and resource-limit decisions.
 - TypeScript workspace with a minimal local-only status endpoint.
 - Provider-neutral token-impact accounting with unit tests.

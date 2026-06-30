@@ -31,12 +31,21 @@ An in-process fake provider verifies:
 - failover re-prepares context for the next target's tokenizer, limits, and
   capabilities;
 - measurement/storage failure still forwards traffic;
-- credentials and raw bodies do not enter default logs/events.
+- credentials and raw bodies do not enter default logs/events;
 - local authorization is consumed and never forwarded upstream;
 - agent tokens cannot access administrative endpoints;
 - invalid, unknown, or unsafe configuration fails deterministically;
 - remote HTTP and non-loopback bindings are rejected while explicit loopback
-  upstreams remain supported.
+  upstreams remain supported;
+- raw observe-mode request bytes and unknown fields reach the upstream unchanged;
+- buffered status/body and ordered SSE event payloads preserve the upstream
+  contract;
+- measurement does not inject usage or other request fields;
+- `413`, `429`, connection, response-header, and stream-idle limits are
+  distinguishable;
+- no automatic retry occurs for connection, timeout, provider, measurement, or
+  persistence failures;
+- explicit and inferred session associations remain distinguishable.
 
 ### Replay and quality tests
 

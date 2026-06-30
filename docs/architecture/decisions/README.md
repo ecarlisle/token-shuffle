@@ -11,7 +11,11 @@ Proposed, Accepted, Superseded, or Rejected.
 - [0006 — Evolutionary package boundaries](0006-evolutionary-package-boundaries.md)
 - [0007 — Tauri shell with an independent Node proxy](0007-workstation-distribution.md)
 - [0008 — Local authentication and strict configuration](0008-local-authentication-and-configuration.md)
+- [0009 — Transparent fidelity and compatibility guarantees](0009-transparent-fidelity-and-compatibility.md)
+- [0010 — Execution and retry semantics](0010-execution-and-retry-semantics.md)
+- [0011 — Event and session identity](0011-event-and-session-identity.md)
+- [0012 — Resource and timeout limits](0012-resource-and-timeout-limits.md)
 
-ADRs 0001–0008 are **Accepted** and form the reviewed foundation for
+ADRs 0001–0012 are **Accepted** and form the reviewed foundation for
 implementation. Future changes may supersede an ADR but do not silently rewrite
 its history.

@@ -25,10 +25,15 @@ is either completed or explicitly scheduled; `pnpm check` is green.
   stripping, strict versioned JSONC, and loopback/upstream URL policy.
 - OpenAI-compatible Chat Completions ingress and one compatible upstream,
   implemented as internal modules rather than premature workspace packages.
+- OpenAI direct reference smoke tests followed by provisional OpenRouter tests.
 - An execution coordinator separate from Fastify handlers.
 - Correct buffered forwarding followed by SSE pass-through, cancellation, and
   provider errors.
-- Session/request correlation and versioned observation events.
+- No automatic retries or failover.
+- Authoritative request/attempt IDs, explicit or labeled-inferred sessions, and
+  versioned observation events.
+- Accepted request, header, concurrency, SSE-event, and timeout limits with
+  explicit overload errors.
 - Token counting with explicit provenance.
 - Structural repetition, stable-prefix, cache usage, and latency metrics.
 - Tool-definition and tool-output token-share metrics.
@@ -37,8 +42,9 @@ is either completed or explicitly scheduled; `pnpm check` is green.
 - A dedicated `node:sqlite` worker with explicit SQL migrations and startup
   version/integrity checks.
 
-Exit: byte-preserving fixtures pass; a real supported client completes coding
-sessions through the proxy; default storage contains no raw content; module
+Exit: transparent fidelity fixtures pass; a real supported client completes
+coding sessions against the reference upstream; the compatibility matrix names
+tested versions and features; default storage contains no raw content; module
 boundaries match the package-map ownership rules.
 
 ## v0.2 — Evidence dashboard

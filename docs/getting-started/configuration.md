@@ -55,6 +55,23 @@ Multi-provider routing arrives later in the roadmap.
 Unknown keys are errors. Missing secret variables, unsafe network settings, and
 incompatible options prevent startup instead of falling back to defaults.
 
+### Resource defaults
+
+| Limit | Default |
+| --- | ---: |
+| Request body | 16 MiB |
+| Request headers | 16 KiB |
+| Concurrent inference requests | 16 |
+| Upstream connection | 10 seconds |
+| Response headers | 5 minutes |
+| Stream idle | 2 minutes |
+| Total inference | No default timeout |
+| Single SSE event | 8 MiB |
+
+Safe overrides use validated configuration. Oversized requests receive `413`;
+excess concurrency receives `429`. Token Shuffle never converts a timeout into
+an automatic inference retry.
+
 ### `mode`
 
 - `observe` forwards requests without semantic transformation while recording
