@@ -14,6 +14,7 @@ dashboard are still absent.
 
 - **Application users:** [Getting started](docs/getting-started/README.md)
 - **Compatibility:** [Supported clients, providers, and features](docs/compatibility.md)
+- **Version history:** [Release-level project history](docs/version-history.md)
 - **Documentation index:** [docs/README.md](docs/README.md)
 - **Contributors:** [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Coding agents:** [AGENTS.md](AGENTS.md)

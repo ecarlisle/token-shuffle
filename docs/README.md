@@ -13,9 +13,9 @@ project. This page is the documentation index.
 4. [Use the web UI](getting-started/web-ui.md)
 
 The user guides describe the intended v0.1–v0.2 experience. The repository is
-currently v0.0: inference proxying and the web dashboard are not implemented
-yet. Availability notices in each guide prevent planned commands from being
-mistaken for current behavior.
+currently in v0.1 development: buffered proxying exists, while streaming and the
+web dashboard are not implemented yet. Availability notices prevent planned
+commands from being mistaken for current behavior.
 
 ## Product and delivery
 
@@ -23,6 +23,7 @@ mistaken for current behavior.
 - [Token economics](product/token-economics.md)
 - [Compatibility](compatibility.md)
 - [Roadmap](roadmap.md)
+- [Version history](version-history.md)
 - [Changelog](../CHANGELOG.md)
 
 ## Architecture

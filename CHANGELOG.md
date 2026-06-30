@@ -27,3 +27,5 @@ This project follows Keep a Changelog conventions while it is pre-release.
   loopback/upstream URL enforcement.
 - Added authenticated, byte-preserving buffered Chat Completions forwarding to
   one OpenAI-compatible upstream, with explicit limits and no retries.
+- Added a succinct release-level version history for the current and subsequent
+  versions.
