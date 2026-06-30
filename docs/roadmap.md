@@ -21,6 +21,8 @@ is either completed or explicitly scheduled; `pnpm check` is green.
   getting-started configuration.
 - Implement `start`, `status`, `stop`, `config path`, and `config validate`
   commands or update the guide before release if the CLI contract changes.
+- Implement `doctor`, mandatory agent-route authentication, local authorization
+  stripping, strict versioned JSONC, and loopback/upstream URL policy.
 - OpenAI-compatible Chat Completions ingress and one compatible upstream,
   implemented as internal modules rather than premature workspace packages.
 - An execution coordinator separate from Fastify handlers.
@@ -43,6 +45,8 @@ boundaries match the package-map ownership rules.
 
 - React 19.2 and Vite 8 SPA using REST for queries and SSE for live events.
 - Implement the documented `open` command and getting-started web UI journey.
+- Add single-use browser bootstrap and a separate administrative session before
+  exposing history or management APIs.
 - TanStack Query, Router, and Table; Radix primitives; Tailwind design tokens;
   Apache ECharts for evidence visualizations.
 - Local overview of sessions and provider/model usage.

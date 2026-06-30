@@ -22,6 +22,7 @@ single invocation with `--config /path/to/config.jsonc`.
 
 ```jsonc
 {
+  "configVersion": 1,
   "mode": "observe",
   "server": {
     "host": "127.0.0.1",
@@ -51,6 +52,9 @@ Multi-provider routing arrives later in the roadmap.
 
 ## Configuration rules
 
+Unknown keys are errors. Missing secret variables, unsafe network settings, and
+incompatible options prevent startup instead of falling back to defaults.
+
 ### `mode`
 
 - `observe` forwards requests without semantic transformation while recording
@@ -79,11 +83,19 @@ Only environment-variable references belong in the configuration. Missing
 variables are startup errors; Token Shuffle must not quietly run without local
 authentication.
 
+Literal secrets and secret-valued CLI flags are rejected. The access token
+authorizes agent-facing inference routes only. Dashboard administration uses a
+separate session beginning in v0.2.
+
 ### `storage`
 
 `retainRawContent` defaults to `false`. With that setting, Token Shuffle stores
 counts, timing, structural metadata, keyed fingerprints, and redacted decisions
 without retaining readable prompts or responses.
+
+Initial defaults retain structural execution events for 30 days and redacted
+errors for 14 days. Aggregate projections remain until deleted. Cache expiry is
+configured separately.
 
 Enable raw capture only for a bounded diagnostic or replay session after
 reviewing the content involved. The web UI must make capture state conspicuous.
@@ -94,8 +106,8 @@ From lowest to highest:
 
 1. built-in defaults;
 2. the user configuration file;
-3. environment variables;
-4. CLI flags.
+3. documented environment overrides;
+4. non-secret CLI flags.
 
 The status and diagnostics commands show effective non-secret settings and their
 sources.
@@ -112,6 +124,15 @@ Validation checks syntax, unknown keys, environment-variable presence, loopback
 binding, upstream URL policy, storage path access, and incompatible options. It
 never prints resolved secret values.
 
+Configuration changes require restart in v0.1. A port collision is an error;
+Token Shuffle does not silently choose a different port.
+
+For runtime connectivity and storage checks, use the planned command:
+
+```sh
+token-shuffle doctor
+```
+
 ## Provider examples
 
 An OpenAI-compatible provider changes only the upstream URL and environment
@@ -119,6 +140,7 @@ variable reference:
 
 ```jsonc
 {
+  "configVersion": 1,
   "upstream": {
     "type": "openai-compatible",
     "baseUrl": "https://provider.example/v1",

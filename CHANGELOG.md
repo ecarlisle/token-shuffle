@@ -15,5 +15,7 @@ This project follows Keep a Changelog conventions while it is pre-release.
   distribution strategy.
 - Added an orderly documentation index and planned user onboarding for Token
   Shuffle, OpenCode, Pi Coding Agent, and the web UI.
+- Accepted observe-first scope, OpenAI-compatible ingress, privacy retention,
+  and strict local authentication/configuration decisions.
 - TypeScript workspace with a minimal local-only status endpoint.
 - Provider-neutral token-impact accounting with unit tests.

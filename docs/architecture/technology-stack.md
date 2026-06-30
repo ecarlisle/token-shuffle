@@ -258,8 +258,12 @@ tests, documentation, and release note rather than being mixed into feature work
 - Do not enable wildcard CORS.
 - Require a generated proxy access token on agent-facing inference routes;
   compatible clients send it as their configured API key.
-- Authenticate local dashboard mutations with a random per-run or per-install
-  session and validate `Origin`.
+- Never forward the local agent authorization header; provider adapters attach
+  a separately resolved upstream credential.
+- Give agent tokens no access to configuration, replay, readable history,
+  retention, cache deletion, shutdown, or restart.
+- Bootstrap dashboard administration with a single-use code and an `HttpOnly`,
+  `SameSite=Strict` session; validate `Origin` on mutations.
 - Permit only explicitly configured upstream endpoints and guard against
   request-controlled SSRF; configured local providers such as Ollama remain
   possible.
@@ -268,6 +272,8 @@ tests, documentation, and release note rather than being mixed into feature work
 - Apply restrictive permissions to configuration, database, logs, and exports.
 - Redact before logging or event persistence.
 - Treat imported configurations and replay files as untrusted.
+- Reject unknown configuration keys, literal configured secrets, secret CLI
+  flags, and silent fallback from invalid explicit configuration.
 - Sign desktop binaries and installers where the platform supports it, and
   always sign update metadata/artifacts.
 

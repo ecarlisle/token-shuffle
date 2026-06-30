@@ -32,6 +32,11 @@ An in-process fake provider verifies:
   capabilities;
 - measurement/storage failure still forwards traffic;
 - credentials and raw bodies do not enter default logs/events.
+- local authorization is consumed and never forwarded upstream;
+- agent tokens cannot access administrative endpoints;
+- invalid, unknown, or unsafe configuration fails deterministically;
+- remote HTTP and non-loopback bindings are rejected while explicit loopback
+  upstreams remain supported.
 
 ### Replay and quality tests
 

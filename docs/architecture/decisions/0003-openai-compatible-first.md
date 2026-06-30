@@ -1,6 +1,6 @@
 # ADR 0003: Begin with OpenAI-compatible ingress
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-06-29
 
 ## Context
@@ -11,11 +11,18 @@ and make testing combinatorial.
 
 ## Decision
 
-Implement OpenAI-compatible Chat Completions ingress and SSE pass-through first,
-with one OpenAI-compatible upstream adapter. Preserve unknown fields whenever
-possible. Add Anthropic Messages ingress after the event and streaming contracts
-are stable. Treat newer stateful APIs as separate adapters, not assumptions in
-the core domain.
+Implement one deeply tested vertical slice:
+
+- OpenAI-compatible `POST /v1/chat/completions` ingress;
+- buffered JSON and SSE responses;
+- tool calls, provider errors, usage events, backpressure, and cancellation;
+- OpenCode and Pi as initial client compatibility targets;
+- one generic OpenAI-compatible upstream adapter;
+- one named real upstream used for release smoke tests.
+
+Preserve unknown fields whenever possible. Add Anthropic Messages ingress after
+the event and streaming contracts are stable. Treat Responses and other stateful
+APIs as separate adapters, not assumptions in the core domain.
 
 ## Consequences
 
@@ -23,3 +30,7 @@ the core domain.
 - Some named clients will require compatibility configuration or wait for a
   later protocol adapter.
 - Provider-specific cache metadata remains at adapter boundaries.
+- v0.1 does not include active transformations, dynamic routing, response-cache
+  serving, Anthropic ingress, or generalized protocol translation.
+- “OpenAI-compatible” alone is not a support claim; the compatibility matrix
+  names tested clients, providers, models, features, and versions.
