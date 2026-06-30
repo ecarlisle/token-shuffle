@@ -1,8 +1,8 @@
 # Getting started
 
-> **Availability:** The proxy journey is implemented in v0.1.0-rc.1. OpenCode
-> and Pi support is provisional pending live release validation. The web UI
-> begins in v0.2.
+> **Availability:** The proxy journey is implemented in v0.1.0. OpenCode with
+> OpenCode Zen is verified; Pi and other upstream combinations remain
+> provisional. The web UI begins in v0.2.
 
 Token Shuffle runs on your workstation between a coding agent and an inference
 provider:

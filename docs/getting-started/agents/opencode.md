@@ -1,8 +1,8 @@
 # Configure OpenCode
 
-> **Token Shuffle availability:** The v0.1 release candidate supports the
-> required streaming protocol. Compatibility remains provisional until the
-> pinned live-client release smoke test passes.
+> **Token Shuffle availability:** v0.1.0 is verified with OpenCode 1.17.11,
+> OpenCode Zen, and `deepseek-v4-flash-free`. Other providers and models remain
+> separate compatibility claims.
 
 OpenCode supports custom OpenAI-compatible providers through
 `@ai-sdk/openai-compatible`. Its global configuration is

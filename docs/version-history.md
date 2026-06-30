@@ -10,7 +10,7 @@ real, then mark it released with a date before opening the next version entry.
 
 ## v0.1 — Transparent observer
 
-**Status:** Release candidate (`v0.1.0-rc.1`)
+**Status:** Released as `v0.1.0` on 2026-06-30
 
 Token Shuffle began forwarding inference traffic through an authenticated local
 proxy. The initial vertical slice provides:
@@ -32,10 +32,11 @@ proxy. The initial vertical slice provides:
 - Node.js 24.15+, TypeScript 6, protocol integration tests, and synchronized
   user documentation.
 
-Implementation is complete. Real OpenAI smoke tests and live OpenCode/Pi coding
-sessions remain release-validation gates because this workstation has no
-configured provider credential. The dashboard is v0.2 scope. This entry does
-not yet represent a final v0.1 release.
+Release validation used OpenCode 1.17.11 with OpenCode Zen and
+`deepseek-v4-flash-free`. The local event ledger recorded eight complete request
+lifecycles without degraded persistence. Pi 0.79.8, OpenAI direct, and other
+client/upstream combinations remain provisional rather than inheriting the
+verified status. The dashboard is v0.2 scope.
 
 ## v0.0 — Foundation
 

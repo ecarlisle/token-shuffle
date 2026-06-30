@@ -14,16 +14,19 @@ client, provider, field, or model works.
 
 ## Current status
 
-Token Shuffle v0.1.0-rc.1 has a contract-tested buffered and SSE implementation.
-No real-provider coding-agent smoke test has run, so client/provider
-combinations are provisional rather than verified.
+Token Shuffle v0.1.0 has a contract-tested buffered and SSE implementation.
+OpenCode 1.17.11 has completed live traffic through OpenCode Zen with
+`deepseek-v4-flash-free`; the event ledger recorded eight complete request
+lifecycles without degraded persistence.
 
-| Client | Ingress | Upstream | Status |
-| --- | --- | --- | --- |
-| OpenCode | OpenAI Chat Completions | OpenAI direct | Provisional |
-| Pi Coding Agent | OpenAI Chat Completions | OpenAI direct | Provisional |
-| OpenCode | OpenAI Chat Completions | OpenRouter | Unknown |
-| Pi Coding Agent | OpenAI Chat Completions | OpenRouter | Unknown |
+| Client | Version | Ingress | Upstream/model | Status |
+| --- | --- | --- | --- | --- |
+| OpenCode | 1.17.11 | OpenAI Chat Completions | OpenCode Zen / `deepseek-v4-flash-free` | Verified |
+| Pi Coding Agent | 0.79.8 | OpenAI Chat Completions | OpenCode Zen | Provisional |
+| OpenCode | 1.17.11 | OpenAI Chat Completions | OpenAI direct | Provisional |
+| Pi Coding Agent | 0.79.8 | OpenAI Chat Completions | OpenAI direct | Provisional |
+| OpenCode | — | OpenAI Chat Completions | OpenRouter | Unknown |
+| Pi Coding Agent | — | OpenAI Chat Completions | OpenRouter | Unknown |
 
 Specific client versions and a tool-capable model are pinned in v0.1 release
 test metadata rather than guessed in advance. Follow the

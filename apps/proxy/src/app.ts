@@ -132,11 +132,11 @@ export function buildApp(
     async () => ({
       mode: "observe",
       name: "token-shuffle",
-      phase: "v0.1-release-candidate",
+      phase: "v0.1",
       persistence: eventSink.health,
       ready: true,
       streaming: true,
-      version: "0.1.0-rc.1",
+      version: "0.1.0",
     }),
   );
 

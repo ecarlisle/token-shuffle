@@ -1,6 +1,6 @@
 # Configure Token Shuffle
 
-> **Availability:** Implemented in v0.1.0-rc.1. Multi-provider configuration is
+> **Availability:** Implemented in v0.1.0. Multi-provider configuration is
 > intentionally deferred.
 
 ## Configuration location

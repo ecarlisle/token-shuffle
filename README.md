@@ -5,11 +5,11 @@ inference providers. Its purpose is to make context use visible, reduce genuinel
 unnecessary input where that can be done safely, and show enough evidence for a
 user to judge every optimization.
 
-The project is at **v0.1.0-rc.1**. The transparent-observer implementation is
-complete and awaiting real-provider OpenCode and Pi release validation. It
-supports authenticated buffered and streaming Chat Completions, structural
-measurement, privacy-first SQLite events, and a headless CLI. The dashboard
-begins in v0.2.
+The current release is **v0.1.0**. The transparent observer supports
+authenticated buffered and streaming Chat Completions, structural measurement,
+privacy-first SQLite events, and a headless CLI. OpenCode with OpenCode Zen is
+the first verified live combination; other combinations remain explicitly
+provisional. The dashboard begins in v0.2.
 
 ## Documentation
 

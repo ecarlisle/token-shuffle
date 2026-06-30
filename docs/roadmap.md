@@ -13,7 +13,7 @@ exit criteria are met.
 Exit: foundation ADRs reviewed; the TypeScript 6 and Node 24.15 minimum migration
 is either completed or explicitly scheduled; `pnpm check` is green.
 
-## v0.1 — Transparent observer (release candidate)
+## v0.1 — Transparent observer (released 2026-06-30)
 
 - Adopt the accepted Node, TypeScript, Fastify, Undici, TypeBox, Pino, and
   development-tooling baseline.
@@ -53,9 +53,10 @@ backpressure, identities, structural/token observations, worker-thread SQLite
 persistence and retention, CLI lifecycle/diagnostics, explicit limits, and zero
 automatic retries.
 
-Release validation still open: OpenAI direct smoke tests and live coding
-sessions with pinned OpenCode and Pi versions. Those require a configured
-provider credential and cannot be replaced by synthetic fixtures.
+Release evidence: OpenCode 1.17.11 completed a live session through OpenCode Zen
+using `deepseek-v4-flash-free`; eight complete request lifecycles were persisted
+without degradation. Pi 0.79.8 and OpenAI direct remain provisional matrix
+entries and do not inherit this verified result.
 
 ## v0.2 — Evidence dashboard
 

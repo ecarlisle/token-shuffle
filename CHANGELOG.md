@@ -4,6 +4,8 @@ This project follows Keep a Changelog conventions while it is pre-release.
 
 ## Unreleased
 
+## 0.1.0 - 2026-06-30
+
 ### Added
 
 - Initial product, architecture, testing, and roadmap documentation.
