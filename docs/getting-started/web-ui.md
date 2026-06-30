@@ -1,7 +1,7 @@
 # Use the web UI
 
-> **Availability:** The web UI begins in v0.2. It is not present in the current
-> v0.0 foundation executable.
+> **Availability:** The web UI begins in v0.2. It is not present in the v0.1
+> release candidate.
 
 The dashboard is served by the local proxy and is accessible only from the same
 workstation by default.

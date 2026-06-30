@@ -10,7 +10,7 @@ real, then mark it released with a date before opening the next version entry.
 
 ## v0.1 — Transparent observer
 
-**Status:** In development
+**Status:** Release candidate (`v0.1.0-rc.1`)
 
 Token Shuffle began forwarding inference traffic through an authenticated local
 proxy. The initial vertical slice provides:
@@ -18,15 +18,24 @@ proxy. The initial vertical slice provides:
 - strict JSONC configuration with environment-resolved secrets;
 - loopback-only binding and safe upstream URL validation;
 - one OpenAI-compatible Chat Completions upstream;
-- byte-preserving buffered request and response forwarding;
+- byte-preserving buffered and SSE request/response forwarding with
+  backpressure;
 - local credential replacement, explicit resource limits, cancellation, and no
   automatic retries;
+- request, attempt, event, and explicit/inferred session identities;
+- structural repetition, stable-prefix, tool-share, cache, usage, and latency
+  observations with explicit count provenance;
+- worker-thread SQLite event persistence, retention, deletion, startup
+  integrity checks, and degraded-persistence accounting;
+- `start`, `stop`, `status`, `config path`, `config validate`, and `doctor`
+  commands;
 - Node.js 24.15+, TypeScript 6, protocol integration tests, and synchronized
   user documentation.
 
-Streaming, measurement, persistence, CLI lifecycle commands, real-provider
-smoke tests, coding-agent verification, and the dashboard remain unfinished.
-This entry does not represent a v0.1 release.
+Implementation is complete. Real OpenAI smoke tests and live OpenCode/Pi coding
+sessions remain release-validation gates because this workstation has no
+configured provider credential. The dashboard is v0.2 scope. This entry does
+not yet represent a final v0.1 release.
 
 ## v0.0 — Foundation
 

@@ -29,3 +29,6 @@ This project follows Keep a Changelog conventions while it is pre-release.
   one OpenAI-compatible upstream, with explicit limits and no retries.
 - Added a succinct release-level version history for the current and subsequent
   versions.
+- Completed the v0.1 transparent-observer implementation with SSE forwarding,
+  lifecycle identities, provenance-aware structural measurements, worker-thread
+  SQLite retention, and headless lifecycle/diagnostic CLI commands.

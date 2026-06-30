@@ -1,8 +1,8 @@
 # Configure OpenCode
 
-> **Token Shuffle availability:** OpenCode configuration is intended for the
-> completed v0.1 proxy. The current development slice rejects streaming and is
-> not yet claimed compatible with OpenCode.
+> **Token Shuffle availability:** The v0.1 release candidate supports the
+> required streaming protocol. Compatibility remains provisional until the
+> pinned live-client release smoke test passes.
 
 OpenCode supports custom OpenAI-compatible providers through
 `@ai-sdk/openai-compatible`. Its global configuration is

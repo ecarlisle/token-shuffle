@@ -5,10 +5,11 @@ inference providers. Its purpose is to make context use visible, reduce genuinel
 unnecessary input where that can be done safely, and show enough evidence for a
 user to judge every optimization.
 
-The project is in **v0.1 development**. The current executable implements an
-authenticated, observe-only, buffered Chat Completions forwarding slice. It is
-not a v0.1 release: streaming, persistence, measurement, CLI commands, and the
-dashboard are still absent.
+The project is at **v0.1.0-rc.1**. The transparent-observer implementation is
+complete and awaiting real-provider OpenCode and Pi release validation. It
+supports authenticated buffered and streaming Chat Completions, structural
+measurement, privacy-first SQLite events, and a headless CLI. The dashboard
+begins in v0.2.
 
 ## Documentation
 
@@ -49,7 +50,7 @@ secrets, and follow the
 ## Repository map
 
 ```text
-apps/proxy/       Local HTTP proxy and buffered forwarding slice
+apps/proxy/       Local HTTP/SSE proxy, CLI, observation, and persistence
 apps/web/         Reserved boundary for the local dashboard
 packages/core/    Provider-neutral domain rules and metrics
 docs/             Vision, ADRs, architecture, testing, and roadmap

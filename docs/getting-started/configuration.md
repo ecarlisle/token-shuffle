@@ -1,8 +1,7 @@
 # Configure Token Shuffle
 
-> **Availability:** The current development proxy parses the initial
-> single-upstream fields below. CLI validation, storage, and all multi-provider
-> configuration remain planned for v0.1.
+> **Availability:** Implemented in v0.1.0-rc.1. Multi-provider configuration is
+> intentionally deferred.
 
 ## Configuration location
 
@@ -15,9 +14,9 @@ directory:
 | Linux | `${XDG_CONFIG_HOME:-~/.config}/token-shuffle/config.jsonc` |
 | Windows | `%APPDATA%\Token Shuffle\config.jsonc` |
 
-The planned installed CLI will use `token-shuffle config path` and `--config`.
-During development, set `TOKEN_SHUFFLE_CONFIG=/path/to/config.jsonc`; otherwise
-the proxy reads the platform path above.
+Use `token-shuffle config path` to show the active default. Override it with
+`--config /path/to/config.jsonc` or
+`TOKEN_SHUFFLE_CONFIG=/path/to/config.jsonc`.
 
 ## Initial configuration
 
@@ -42,7 +41,10 @@ the proxy reads the platform path above.
     }
   },
   "storage": {
-    "retainRawContent": false
+    "retainRawContent": false,
+    "path": "/path/to/token-shuffle-events.sqlite",
+    "structuralRetentionDays": 30,
+    "errorRetentionDays": 14
   }
 }
 ```
@@ -69,10 +71,10 @@ incompatible options prevent startup instead of falling back to defaults.
 | Total inference | No default timeout |
 | Single SSE event | 8 MiB |
 
-The development slice accepts `limits.requestBodyBytes`,
+The proxy accepts `limits.requestBodyBytes`,
 `limits.requestHeaderBytes`, `limits.concurrentInferenceRequests`,
 `limits.upstreamConnectTimeoutMs`, `limits.responseHeaderTimeoutMs`, and
-`limits.responseBodyTimeoutMs`. Oversized requests receive `413`;
+`limits.responseBodyTimeoutMs`, and `limits.sseEventBytes`. Oversized requests receive `413`;
 excess concurrency receives `429`. Token Shuffle never converts a timeout into
 an automatic inference retry.
 
@@ -130,25 +132,23 @@ From lowest to highest:
 3. documented environment overrides;
 4. non-secret CLI flags.
 
-The status and diagnostics commands show effective non-secret settings and their
-sources.
+Configuration validation prints an effective non-secret summary. Status and
+doctor report runtime health without printing resolved credentials.
 
 ## Validate before starting
-
-The planned command:
 
 ```sh
 token-shuffle config validate
 ```
 
 Validation checks syntax, unknown keys, environment-variable presence, loopback
-binding, upstream URL policy, storage path access, and incompatible options. It
-never prints resolved secret values.
+binding, upstream URL policy, and incompatible options. It never prints resolved
+secret values. `doctor` checks storage access and runtime connectivity.
 
 Configuration changes require restart in v0.1. A port collision is an error;
 Token Shuffle does not silently choose a different port.
 
-For runtime connectivity and storage checks, use the planned command:
+For runtime connectivity and storage checks:
 
 ```sh
 token-shuffle doctor

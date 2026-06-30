@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { buildApp } from "./app.js";
 import type { RuntimeConfig } from "./config/schema.js";
+import type { EventSink, ObservationEvent } from "./observation/events.js";
 
 type Handler = (request: IncomingMessage, response: ServerResponse) => void;
 
@@ -51,7 +52,12 @@ function createConfig(baseUrl: URL, limits?: Partial<RuntimeConfig["limits"]>): 
       baseUrl,
       apiKey: "provider-test-key",
     },
-    storage: { retainRawContent: false },
+    storage: {
+      retainRawContent: false,
+      path: ":memory:",
+      structuralRetentionDays: 30,
+      errorRetentionDays: 14,
+    },
     limits: {
       requestBodyBytes: 16 * 1024 * 1024,
       requestHeaderBytes: 16 * 1024,
@@ -59,6 +65,7 @@ function createConfig(baseUrl: URL, limits?: Partial<RuntimeConfig["limits"]>): 
       upstreamConnectTimeoutMs: 1_000,
       responseHeaderTimeoutMs: 1_000,
       responseBodyTimeoutMs: 1_000,
+      sseEventBytes: 8 * 1024 * 1024,
       ...limits,
     },
   };
@@ -69,6 +76,14 @@ function authorizedHeaders(): Record<string, string> {
     authorization: "Bearer local-test-token",
     "content-type": "application/json",
   };
+}
+
+class RecordingEventSink implements EventSink {
+  public readonly events: ObservationEvent[] = [];
+
+  public async append(event: ObservationEvent): Promise<void> {
+    this.events.push(event);
+  }
 }
 
 describe("proxy authentication", () => {
@@ -112,8 +127,29 @@ describe("proxy authentication", () => {
     expect(allowed.json()).toMatchObject({
       mode: "observe",
       ready: true,
-      streaming: false,
+      streaming: true,
     });
+  });
+
+  it("rejects browser-origin inference even with a valid agent token", async () => {
+    let providerCalls = 0;
+    const baseUrl = await startProvider((_request, response) => {
+      providerCalls += 1;
+      response.end("{}");
+    });
+    const app = buildApp(createConfig(baseUrl));
+    apps.push(app);
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/chat/completions",
+      headers: { ...authorizedHeaders(), origin: "https://malicious.example" },
+      payload: '{"model":"test","messages":[]}',
+    });
+
+    expect(response.statusCode).toBe(403);
+    expect(response.headers["x-token-shuffle-error"]).toBe("true");
+    expect(providerCalls).toBe(0);
   });
 });
 
@@ -127,7 +163,7 @@ describe("buffered Chat Completions forwarding", () => {
     const providerBody = Buffer.from('{\n "id": "provider-response", "choices": []\n}\n');
     const baseUrl = await startProvider((request, response) => {
       receivedAuthorization = request.headers.authorization;
-      const internalHeader = request.headers["x-token-shuffle-session"];
+      const internalHeader = request.headers["x-token-shuffle-session-id"];
       receivedInternalHeader =
         typeof internalHeader === "string" ? internalHeader : internalHeader?.[0];
       const chunks: Buffer[] = [];
@@ -142,7 +178,8 @@ describe("buffered Chat Completions forwarding", () => {
         response.end(providerBody);
       });
     });
-    const app = buildApp(createConfig(baseUrl));
+    const eventSink = new RecordingEventSink();
+    const app = buildApp(createConfig(baseUrl), { eventSink });
     apps.push(app);
 
     const response = await app.inject({
@@ -150,7 +187,7 @@ describe("buffered Chat Completions forwarding", () => {
       url: "/v1/chat/completions",
       headers: {
         ...authorizedHeaders(),
-        "x-token-shuffle-session": "local-only",
+        "x-token-shuffle-session-id": "explicit-session",
       },
       payload: rawBody,
     });
@@ -164,6 +201,23 @@ describe("buffered Chat Completions forwarding", () => {
     expect(receivedAuthorization).toBe("Bearer provider-test-key");
     expect(receivedAuthorization).not.toContain("local-test-token");
     expect(receivedInternalHeader).toBeUndefined();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(eventSink.events.map((event) => event.type)).toEqual([
+      "request.received",
+      "request.measured",
+      "route.selected",
+      "attempt.started",
+      "attempt.first_byte",
+      "attempt.usage",
+      "attempt.completed",
+      "request.completed",
+    ]);
+    expect(eventSink.events[0]?.session).toEqual({
+      id: "explicit-session",
+      association: "explicit",
+      method: "x-token-shuffle-session-id",
+    });
+    expect(JSON.stringify(eventSink.events)).not.toContain(rawBody);
   });
 
   it("preserves provider error status and body", async () => {
@@ -191,7 +245,40 @@ describe("buffered Chat Completions forwarding", () => {
     expect(response.headers["x-token-shuffle-error"]).toBeUndefined();
   });
 
-  it("rejects malformed, unsupported, and oversized input before dispatch", async () => {
+  it("preserves SSE bytes and event boundaries", async () => {
+    const chunks = [
+      Buffer.from("event: message\r\n"),
+      Buffer.from('data: {"choices":[{"delta":{"content":"OK"}}]}\r\n\r\n'),
+      Buffer.from("data: [DONE]\r\n\r\n"),
+    ];
+    const baseUrl = await startProvider((_request, response) => {
+      response.writeHead(200, {
+        "content-type": "text/event-stream",
+        "x-request-id": "stream-request-id",
+      });
+      response.write(chunks[0]);
+      setImmediate(() => {
+        response.write(chunks[1]);
+        response.end(chunks[2]);
+      });
+    });
+    const app = buildApp(createConfig(baseUrl));
+    apps.push(app);
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/chat/completions",
+      headers: authorizedHeaders(),
+      payload: '{"model":"test","messages":[],"stream":true}',
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["content-type"]).toBe("text/event-stream");
+    expect(response.headers["x-request-id"]).toBe("stream-request-id");
+    expect(response.rawPayload).toEqual(Buffer.concat(chunks));
+  });
+
+  it("rejects malformed and oversized input before dispatch", async () => {
     let providerCalls = 0;
     const baseUrl = await startProvider((_request, response) => {
       providerCalls += 1;
@@ -206,12 +293,6 @@ describe("buffered Chat Completions forwarding", () => {
       headers: authorizedHeaders(),
       payload: '{"model":',
     });
-    const streaming = await app.inject({
-      method: "POST",
-      url: "/v1/chat/completions",
-      headers: authorizedHeaders(),
-      payload: '{"model":"test","messages":[],"stream":true}',
-    });
     const oversized = await app.inject({
       method: "POST",
       url: "/v1/chat/completions",
@@ -224,7 +305,6 @@ describe("buffered Chat Completions forwarding", () => {
     });
 
     expect(malformed.statusCode).toBe(400);
-    expect(streaming.statusCode).toBe(501);
     expect(oversized.statusCode).toBe(413);
     expect(providerCalls).toBe(0);
   });
@@ -334,5 +414,35 @@ describe("buffered Chat Completions forwarding", () => {
     expect(second.headers["x-token-shuffle-error"]).toBe("true");
     expect(completedFirst.statusCode).toBe(200);
     expect(providerCalls).toBe(1);
+  });
+});
+
+describe("model discovery", () => {
+  it("forwards authenticated model discovery with only the upstream credential", async () => {
+    let authorization: string | undefined;
+    let method: string | undefined;
+    let path: string | undefined;
+    const providerBody = Buffer.from('{"object":"list","data":[]}');
+    const baseUrl = await startProvider((request, response) => {
+      authorization = request.headers.authorization;
+      method = request.method;
+      path = request.url;
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(providerBody);
+    });
+    const app = buildApp(createConfig(baseUrl));
+    apps.push(app);
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/v1/models",
+      headers: { authorization: "Bearer local-test-token" },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.rawPayload).toEqual(providerBody);
+    expect(authorization).toBe("Bearer provider-test-key");
+    expect(method).toBe("GET");
+    expect(path).toBe("/v1/models");
   });
 });

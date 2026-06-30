@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 import { Value } from "@sinclair/typebox/value";
 import { parse, printParseErrorCode, type ParseError } from "jsonc-parser";
@@ -18,6 +18,7 @@ const DEFAULT_LIMITS: RuntimeConfig["limits"] = {
   upstreamConnectTimeoutMs: 10_000,
   responseHeaderTimeoutMs: 5 * 60_000,
   responseBodyTimeoutMs: 2 * 60_000,
+  sseEventBytes: 8 * 1024 * 1024,
 };
 
 export class ConfigError extends Error {
@@ -102,7 +103,12 @@ export function parseConfig(
       baseUrl: validateUpstream(config.upstream.baseUrl),
       apiKey: resolveSecret(config.upstream.apiKey, environment),
     },
-    storage: config.storage ?? { retainRawContent: false },
+    storage: {
+      retainRawContent: false,
+      path: config.storage?.path ?? join(dirname(defaultConfigPath()), "events.sqlite"),
+      structuralRetentionDays: config.storage?.structuralRetentionDays ?? 30,
+      errorRetentionDays: config.storage?.errorRetentionDays ?? 14,
+    },
     limits: {
       ...DEFAULT_LIMITS,
       ...config.limits,

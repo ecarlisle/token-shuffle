@@ -36,6 +36,9 @@ export const TokenShuffleConfigSchema = Type.Object(
       Type.Object(
         {
           retainRawContent: Type.Literal(false),
+          path: Type.Optional(Type.String({ minLength: 1 })),
+          structuralRetentionDays: Type.Optional(Type.Integer({ minimum: 1 })),
+          errorRetentionDays: Type.Optional(Type.Integer({ minimum: 1 })),
         },
         { additionalProperties: false },
       ),
@@ -49,6 +52,7 @@ export const TokenShuffleConfigSchema = Type.Object(
           upstreamConnectTimeoutMs: Type.Optional(Type.Integer({ minimum: 1 })),
           responseHeaderTimeoutMs: Type.Optional(Type.Integer({ minimum: 1 })),
           responseBodyTimeoutMs: Type.Optional(Type.Integer({ minimum: 1 })),
+          sseEventBytes: Type.Optional(Type.Integer({ minimum: 1 })),
         },
         { additionalProperties: false },
       ),
@@ -76,6 +80,9 @@ export interface RuntimeConfig {
   };
   readonly storage: {
     readonly retainRawContent: false;
+    readonly path: string;
+    readonly structuralRetentionDays: number;
+    readonly errorRetentionDays: number;
   };
   readonly limits: {
     readonly requestBodyBytes: number;
@@ -84,5 +91,6 @@ export interface RuntimeConfig {
     readonly upstreamConnectTimeoutMs: number;
     readonly responseHeaderTimeoutMs: number;
     readonly responseBodyTimeoutMs: number;
+    readonly sseEventBytes: number;
   };
 }

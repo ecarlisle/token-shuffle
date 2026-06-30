@@ -13,9 +13,8 @@ project. This page is the documentation index.
 4. [Use the web UI](getting-started/web-ui.md)
 
 The user guides describe the intended v0.1–v0.2 experience. The repository is
-currently in v0.1 development: buffered proxying exists, while streaming and the
-web dashboard are not implemented yet. Availability notices prevent planned
-commands from being mistaken for current behavior.
+currently at v0.1.0-rc.1: proxy implementation is complete, live client/provider
+release validation is pending, and the web dashboard begins in v0.2.
 
 ## Product and delivery
 
@@ -39,6 +38,7 @@ commands from being mistaken for current behavior.
 - [Coding-agent guardrails](../AGENTS.md)
 - [Change workflow](contributing/workflow.md)
 - [Testing strategy](testing/strategy.md)
+- [v0.1 release validation](testing/v0.1-release-validation.md)
 
 ## Organization rules
 

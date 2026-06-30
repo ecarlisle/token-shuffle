@@ -1,4 +1,4 @@
-import { Agent, request } from "undici";
+import { Agent, request, type Dispatcher } from "undici";
 
 import { TokenShuffleError } from "../errors.js";
 
@@ -11,7 +11,7 @@ const RESPONSE_HEADERS = new Set([
 
 export interface UpstreamResponse {
   readonly statusCode: number;
-  readonly body: Buffer;
+  readonly body: Dispatcher.ResponseData["body"];
   readonly headers: Readonly<Record<string, string>>;
 }
 
@@ -36,11 +36,23 @@ export class OpenAiCompatibleProvider {
     rawBody: Buffer,
     signal: AbortSignal,
   ): Promise<UpstreamResponse> {
-    const url = new URL("chat/completions", ensureTrailingSlash(this.options.baseUrl));
+    return this.#request("chat/completions", signal, rawBody);
+  }
+
+  public async models(signal: AbortSignal): Promise<UpstreamResponse> {
+    return this.#request("models", signal);
+  }
+
+  async #request(
+    path: string,
+    signal: AbortSignal,
+    body?: Buffer,
+  ): Promise<UpstreamResponse> {
+    const url = new URL(path, ensureTrailingSlash(this.options.baseUrl));
 
     try {
       const response = await request(url, {
-        method: "POST",
+        method: body === undefined ? "GET" : "POST",
         dispatcher: this.#dispatcher,
         signal,
         headersTimeout: this.options.responseHeaderTimeoutMs,
@@ -48,11 +60,10 @@ export class OpenAiCompatibleProvider {
         headers: {
           accept: "application/json",
           authorization: `Bearer ${this.options.apiKey}`,
-          "content-type": "application/json",
+          ...(body === undefined ? {} : { "content-type": "application/json" }),
         },
-        body: rawBody,
+        body,
       });
-      const body = Buffer.from(await response.body.arrayBuffer());
       const headers: Record<string, string> = {};
       for (const [name, value] of Object.entries(response.headers)) {
         const normalizedName = name.toLowerCase();
@@ -64,7 +75,7 @@ export class OpenAiCompatibleProvider {
           headers[normalizedName] = value;
         }
       }
-      return { statusCode: response.statusCode, body, headers };
+      return { statusCode: response.statusCode, body: response.body, headers };
     } catch (error) {
       if (signal.aborted) {
         throw error;

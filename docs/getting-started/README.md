@@ -1,8 +1,8 @@
 # Getting started
 
-> **Availability:** This is the target user journey for v0.1 (proxy) and v0.2
-> (web UI). A buffered development slice exists, but coding agents normally
-> require streaming, so do not point OpenCode or Pi at it yet.
+> **Availability:** The proxy journey is implemented in v0.1.0-rc.1. OpenCode
+> and Pi support is provisional pending live release validation. The web UI
+> begins in v0.2.
 
 Token Shuffle runs on your workstation between a coding agent and an inference
 provider:
@@ -25,7 +25,7 @@ agent configuration.
 
 ## Before you begin
 
-For the planned v0.1 release you will need:
+For v0.1 you will need:
 
 - Token Shuffle installed, or the repository checked out for development;
 - an API key for one supported OpenAI-compatible upstream provider;
@@ -64,7 +64,7 @@ Create the application configuration described in
 
 ## 3. Start Token Shuffle
 
-The planned installed CLI is:
+The installed CLI is:
 
 ```sh
 token-shuffle start
@@ -89,12 +89,12 @@ curl \
   http://127.0.0.1:3210/_token-shuffle/status
 ```
 
-The response should report a ready proxy, active mode, version, database health,
-and configured upstream without exposing credentials.
+The response reports readiness, mode, version, streaming support, and degraded
+persistence state without exposing credentials. Use `token-shuffle doctor` for
+SQLite and upstream diagnostics.
 
-### Current development slice
+### Repository development
 
-The repository can currently forward a non-streaming Chat Completions request.
 Node 24.15+ is required. Copy and edit the example configuration, then run:
 
 ```sh
@@ -127,10 +127,9 @@ curl \
   http://127.0.0.1:3210/v1/chat/completions
 ```
 
-The slice preserves valid request body bytes, replaces local authorization with
-upstream authorization, preserves buffered provider status/body bytes, rejects
-`"stream": true`, and performs no automatic retry. It does not yet record
-metrics or history.
+The proxy preserves valid request bytes, replaces local authorization with
+upstream authorization, streams SSE with backpressure, records privacy-safe
+structural metrics, and performs no automatic retry.
 
 ## 4. Configure your coding agent
 
@@ -155,7 +154,7 @@ Reply with the current repository name. Do not modify files.
 Confirm that:
 
 1. the agent receives a streamed response;
-2. the request appears in Token Shuffle diagnostics;
+2. the status endpoint reports no dropped persistence events;
 3. the upstream provider and model are correct;
 4. mode is `observe`, so the request was not semantically transformed.
 
@@ -187,7 +186,7 @@ must not silently retry or duplicate the inference.
 | Unauthorized | Agent and proxy environments use the same local access token |
 | Provider rejected key | `UPSTREAM_API_KEY` belongs to the configured upstream |
 | Model not found | Agent model ID exactly matches an upstream model ID |
-| No dashboard data | A request completed and retention/storage are healthy |
+| No dashboard | The evidence dashboard begins in v0.2 |
 | No readable replay | Raw-content retention is off by default |
 
 Never work around a connection problem by binding Token Shuffle to all network

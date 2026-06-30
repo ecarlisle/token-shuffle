@@ -13,7 +13,7 @@ exit criteria are met.
 Exit: foundation ADRs reviewed; the TypeScript 6 and Node 24.15 minimum migration
 is either completed or explicitly scheduled; `pnpm check` is green.
 
-## v0.1 — Transparent observer (in development)
+## v0.1 — Transparent observer (release candidate)
 
 - Adopt the accepted Node, TypeScript, Fastify, Undici, TypeBox, Pino, and
   development-tooling baseline.
@@ -47,12 +47,15 @@ coding sessions against the reference upstream; the compatibility matrix names
 tested versions and features; default storage contains no raw content; module
 boundaries match the package-map ownership rules.
 
-Implemented development slice: Node 24.15/TypeScript 6 alignment, strict initial
-JSONC loading, local bearer authentication, one OpenAI-compatible upstream,
-byte-preserving buffered request forwarding, provider status/body preservation,
-explicit limits, and zero automatic retries. Streaming, IDs, measurement,
-storage, CLI lifecycle, real-provider smoke tests, and client verification
-remain open.
+Implementation complete: Node 24.15/TypeScript 6 alignment, strict JSONC,
+authentication and safe network policy, buffered/SSE fidelity, cancellation,
+backpressure, identities, structural/token observations, worker-thread SQLite
+persistence and retention, CLI lifecycle/diagnostics, explicit limits, and zero
+automatic retries.
+
+Release validation still open: OpenAI direct smoke tests and live coding
+sessions with pinned OpenCode and Pi versions. Those require a configured
+provider credential and cannot be replaced by synthetic fixtures.
 
 ## v0.2 — Evidence dashboard
 

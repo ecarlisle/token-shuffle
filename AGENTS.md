@@ -21,14 +21,16 @@ Optimize for trustworthiness before feature breadth:
 
 ## Current status
 
-The repository is **v0.1 development**.
+The repository is **v0.1.0-rc.1**.
 
-- The executable exposes authenticated status and buffered
+- The executable exposes authenticated status and buffered/streaming
   `POST /v1/chat/completions` forwarding.
-- Streaming requests are explicitly rejected and agent compatibility is not yet
-  claimed.
+- Structural observations persist to SQLite without raw prompt/response content.
+- OpenCode, Pi, and real-provider compatibility remain provisional until the
+  release smoke matrix passes.
 - The dashboard is not implemented.
-- User guides marked v0.1 or v0.2 are planned contracts, not current behavior.
+- v0.1 user guides describe the release candidate; v0.2 UI guides remain
+  planned contracts.
 - The active runtime baseline is Node.js 24.15+ and TypeScript 6.
 
 Do not describe a planned capability as implemented.

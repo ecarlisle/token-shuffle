@@ -14,19 +14,20 @@ client, provider, field, or model works.
 
 ## Current status
 
-Token Shuffle has a contract-tested buffered development slice. No real provider
-or coding-agent smoke test has run, so client/provider combinations remain
-planned rather than provisional or verified.
+Token Shuffle v0.1.0-rc.1 has a contract-tested buffered and SSE implementation.
+No real-provider coding-agent smoke test has run, so client/provider
+combinations are provisional rather than verified.
 
 | Client | Ingress | Upstream | Status |
 | --- | --- | --- | --- |
-| OpenCode | OpenAI Chat Completions | OpenAI direct | Planned for v0.1 |
-| Pi Coding Agent | OpenAI Chat Completions | OpenAI direct | Planned for v0.1 |
-| OpenCode | OpenAI Chat Completions | OpenRouter | Planned after reference target |
-| Pi Coding Agent | OpenAI Chat Completions | OpenRouter | Planned after reference target |
+| OpenCode | OpenAI Chat Completions | OpenAI direct | Provisional |
+| Pi Coding Agent | OpenAI Chat Completions | OpenAI direct | Provisional |
+| OpenCode | OpenAI Chat Completions | OpenRouter | Unknown |
+| Pi Coding Agent | OpenAI Chat Completions | OpenRouter | Unknown |
 
 Specific client versions and a tool-capable model are pinned in v0.1 release
-test metadata rather than guessed in advance.
+test metadata rather than guessed in advance. Follow the
+[v0.1 release-validation checklist](testing/v0.1-release-validation.md).
 
 | Development-slice behavior | Evidence | Status |
 | --- | --- | --- |
@@ -35,7 +36,7 @@ test metadata rather than guessed in advance.
 | Local credential stripping and upstream credential replacement | Fake-provider integration test | Provisional |
 | Provider error pass-through | Fake-provider integration test | Provisional |
 | Zero automatic retries | Transport-failure integration test | Provisional |
-| SSE streaming | Explicitly rejected | Unsupported in current slice |
+| SSE bytes, event boundaries, backpressure, and cancellation | Fake-provider integration tests | Provisional |
 
 ## Feature matrix
 

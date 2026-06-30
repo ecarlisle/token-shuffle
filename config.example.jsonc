@@ -19,6 +19,9 @@
     }
   },
   "storage": {
-    "retainRawContent": false
+    "retainRawContent": false,
+    "path": "./token-shuffle-events.sqlite",
+    "structuralRetentionDays": 30,
+    "errorRetentionDays": 14
   }
 }

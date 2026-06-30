@@ -36,11 +36,13 @@ export function validateChatCompletionsRequest(body: RawJsonBody): void {
     );
   }
 
-  if (body.parsed.stream === true) {
-    throw new TokenShuffleError(
-      501,
-      "streaming_not_supported",
-      "Streaming responses are not implemented in this development slice.",
-    );
-  }
+}
+
+export function isStreamingRequest(body: RawJsonBody): boolean {
+  return (
+    typeof body.parsed === "object" &&
+    body.parsed !== null &&
+    "stream" in body.parsed &&
+    body.parsed.stream === true
+  );
 }
