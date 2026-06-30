@@ -1,7 +1,8 @@
 # Configure Pi Coding Agent
 
-> **Token Shuffle availability:** Pi configuration is intended for Token
-> Shuffle v0.1. The current v0.0 executable has no inference route.
+> **Token Shuffle availability:** Pi configuration is intended for the completed
+> v0.1 proxy. The current development slice rejects streaming and is not yet
+> claimed compatible with Pi.
 
 Pi supports custom providers and proxies through
 `~/.pi/agent/models.json`. Token Shuffle's first protocol uses Pi's

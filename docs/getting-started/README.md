@@ -1,8 +1,8 @@
 # Getting started
 
 > **Availability:** This is the target user journey for v0.1 (proxy) and v0.2
-> (web UI). Token Shuffle is currently v0.0 and exposes only a development
-> status endpoint. Do not point an agent at the current executable yet.
+> (web UI). A buffered development slice exists, but coding agents normally
+> require streaming, so do not point OpenCode or Pi at it yet.
 
 Token Shuffle runs on your workstation between a coding agent and an inference
 provider:
@@ -92,19 +92,45 @@ curl \
 The response should report a ready proxy, active mode, version, database health,
 and configured upstream without exposing credentials.
 
-### Current v0.0 developer check
+### Current development slice
 
-Today, repository contributors can run:
+The repository can currently forward a non-streaming Chat Completions request.
+Node 24.15+ is required. Copy and edit the example configuration, then run:
 
 ```sh
+cp config.example.jsonc config.local.jsonc
+export TOKEN_SHUFFLE_CONFIG="$PWD/config.local.jsonc"
+export TOKEN_SHUFFLE_ACCESS_TOKEN="generate-a-long-random-value"
+export UPSTREAM_API_KEY="your-provider-api-key"
 pnpm install
 pnpm dev
-curl http://127.0.0.1:3210/_token-shuffle/status
 ```
 
-The v0.0 status endpoint does not require an access token and reports
-`"mode": "foundation"`. Inference routes and the dashboard intentionally return
-not found.
+`config.local.jsonc` is ignored by this repository. The file contains no literal
+secrets, but it may contain workstation-specific provider details.
+
+Check status:
+
+```sh
+curl \
+  -H "Authorization: Bearer $TOKEN_SHUFFLE_ACCESS_TOKEN" \
+  http://127.0.0.1:3210/_token-shuffle/status
+```
+
+Exercise buffered forwarding:
+
+```sh
+curl \
+  -H "Authorization: Bearer $TOKEN_SHUFFLE_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"provider-model-id","messages":[{"role":"user","content":"Reply with OK."}]}' \
+  http://127.0.0.1:3210/v1/chat/completions
+```
+
+The slice preserves valid request body bytes, replaces local authorization with
+upstream authorization, preserves buffered provider status/body bytes, rejects
+`"stream": true`, and performs no automatic retry. It does not yet record
+metrics or history.
 
 ## 4. Configure your coding agent
 

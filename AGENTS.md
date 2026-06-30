@@ -21,15 +21,15 @@ Optimize for trustworthiness before feature breadth:
 
 ## Current status
 
-The repository is **v0.0 foundation**.
+The repository is **v0.1 development**.
 
-- The executable exposes only `GET /_token-shuffle/status`.
-- It does not proxy inference traffic.
+- The executable exposes authenticated status and buffered
+  `POST /v1/chat/completions` forwarding.
+- Streaming requests are explicitly rejected and agent compatibility is not yet
+  claimed.
 - The dashboard is not implemented.
 - User guides marked v0.1 or v0.2 are planned contracts, not current behavior.
-- The accepted production target is Node.js 24.15+ and TypeScript 6.
-- The current scaffold still uses TypeScript 5.9; migrate it explicitly before
-  relying on TypeScript 6 behavior.
+- The active runtime baseline is Node.js 24.15+ and TypeScript 6.
 
 Do not describe a planned capability as implemented.
 

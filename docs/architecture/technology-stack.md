@@ -45,9 +45,7 @@ Node 24.15 is the minimum because it bundles SQLite 3.51.3, which contains the
 WAL-reset corruption fix. The project follows Node 24 LTS patches rather than a
 non-LTS current release.
 
-TypeScript 6 is the production target. Migration from the foundation scaffold's
-TypeScript 5.9 pin is a deliberate build change with its own verification; it is
-not hidden inside this documentation decision.
+The development workspace now enforces the Node 24.15 minimum and TypeScript 6.
 
 ## Protocol and validation
 

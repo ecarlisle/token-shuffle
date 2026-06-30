@@ -5,7 +5,7 @@
   "description": "A local, observable inference proxy for reducing agent context safely.",
   "packageManager": "pnpm@11.7.0",
   "engines": {
-    "node": ">=24 <25"
+    "node": ">=24.15 <25"
   },
   "scripts": {
     "build": "pnpm --recursive build",
@@ -15,9 +15,9 @@
     "typecheck": "pnpm --recursive typecheck"
   },
   "devDependencies": {
-    "@types/node": "^24.10.0",
+    "@types/node": "^24.13.0",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.0",
     "vitest": "^4.0.17"
   }
 }

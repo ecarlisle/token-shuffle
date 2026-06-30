@@ -14,7 +14,9 @@ client, provider, field, or model works.
 
 ## Current status
 
-Token Shuffle is v0.0. Inference compatibility is not implemented.
+Token Shuffle has a contract-tested buffered development slice. No real provider
+or coding-agent smoke test has run, so client/provider combinations remain
+planned rather than provisional or verified.
 
 | Client | Ingress | Upstream | Status |
 | --- | --- | --- | --- |
@@ -25,6 +27,15 @@ Token Shuffle is v0.0. Inference compatibility is not implemented.
 
 Specific client versions and a tool-capable model are pinned in v0.1 release
 test metadata rather than guessed in advance.
+
+| Development-slice behavior | Evidence | Status |
+| --- | --- | --- |
+| Valid buffered Chat Completions request bytes and unknown fields | Fake-provider integration test | Provisional |
+| Buffered provider status, body bytes, and selected safe headers | Fake-provider integration test | Provisional |
+| Local credential stripping and upstream credential replacement | Fake-provider integration test | Provisional |
+| Provider error pass-through | Fake-provider integration test | Provisional |
+| Zero automatic retries | Transport-failure integration test | Provisional |
+| SSE streaming | Explicitly rejected | Unsupported in current slice |
 
 ## Feature matrix
 

@@ -22,3 +22,8 @@ This project follows Keep a Changelog conventions while it is pre-release.
 - Added repository-wide coding-agent guardrails aligned with accepted ADRs.
 - TypeScript workspace with a minimal local-only status endpoint.
 - Provider-neutral token-impact accounting with unit tests.
+- Aligned the workspace with Node.js 24.15+ and TypeScript 6.
+- Added strict JSONC configuration with environment-resolved secrets and safe
+  loopback/upstream URL enforcement.
+- Added authenticated, byte-preserving buffered Chat Completions forwarding to
+  one OpenAI-compatible upstream, with explicit limits and no retries.

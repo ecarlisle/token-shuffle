@@ -5,8 +5,10 @@ inference providers. Its purpose is to make context use visible, reduce genuinel
 unnecessary input where that can be done safely, and show enough evidence for a
 user to judge every optimization.
 
-The project is in **v0.0 — foundation**. The current executable is only a health
-endpoint; it does not yet forward inference traffic.
+The project is in **v0.1 development**. The current executable implements an
+authenticated, observe-only, buffered Chat Completions forwarding slice. It is
+not a v0.1 release: streaming, persistence, measurement, CLI commands, and the
+dashboard are still absent.
 
 ## Documentation
 
@@ -16,8 +18,8 @@ endpoint; it does not yet forward inference traffic.
 - **Contributors:** [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Coding agents:** [AGENTS.md](AGENTS.md)
 
-The getting-started guide clearly marks planned v0.1 and v0.2 behavior. The
-current v0.0 executable is not ready to receive agent inference traffic.
+The getting-started guide separates runnable development behavior from the
+planned v0.1 and v0.2 user journey.
 
 ## Product stance
 
@@ -30,24 +32,23 @@ current v0.0 executable is not ready to receive agent inference traffic.
 
 ## Local development
 
-Current scaffold requirements: Node.js 24 LTS and pnpm 11. The accepted
-production minimum is Node.js 24.15; implementation alignment is tracked in the
-roadmap.
+Requirements: Node.js 24.15 or newer in the Node 24 LTS line and pnpm 11.
 
 ```sh
 corepack enable
 pnpm install
 pnpm check
-pnpm dev
 ```
 
-The development server exposes `GET /_token-shuffle/status` on
-`http://127.0.0.1:3210`. It intentionally binds to loopback.
+To run the proxy, create a configuration from
+[`config.example.jsonc`](config.example.jsonc), export its two referenced
+secrets, and follow the
+[development instructions](docs/getting-started/README.md#current-development-slice).
 
 ## Repository map
 
 ```text
-apps/proxy/       Local HTTP proxy process (health endpoint only today)
+apps/proxy/       Local HTTP proxy and buffered forwarding slice
 apps/web/         Reserved boundary for the local dashboard
 packages/core/    Provider-neutral domain rules and metrics
 docs/             Vision, ADRs, architecture, testing, and roadmap

@@ -1,8 +1,8 @@
 # Configure Token Shuffle
 
-> **Availability:** The configuration contract below is planned for v0.1 and is
-> not parsed by the current v0.0 executable. It serves as the user-experience and
-> implementation contract until v0.1 ships.
+> **Availability:** The current development proxy parses the initial
+> single-upstream fields below. CLI validation, storage, and all multi-provider
+> configuration remain planned for v0.1.
 
 ## Configuration location
 
@@ -15,8 +15,9 @@ directory:
 | Linux | `${XDG_CONFIG_HOME:-~/.config}/token-shuffle/config.jsonc` |
 | Windows | `%APPDATA%\Token Shuffle\config.jsonc` |
 
-Use `token-shuffle config path` to print the active path. Override it for a
-single invocation with `--config /path/to/config.jsonc`.
+The planned installed CLI will use `token-shuffle config path` and `--config`.
+During development, set `TOKEN_SHUFFLE_CONFIG=/path/to/config.jsonc`; otherwise
+the proxy reads the platform path above.
 
 ## Initial configuration
 
@@ -68,7 +69,10 @@ incompatible options prevent startup instead of falling back to defaults.
 | Total inference | No default timeout |
 | Single SSE event | 8 MiB |
 
-Safe overrides use validated configuration. Oversized requests receive `413`;
+The development slice accepts `limits.requestBodyBytes`,
+`limits.requestHeaderBytes`, `limits.concurrentInferenceRequests`,
+`limits.upstreamConnectTimeoutMs`, `limits.responseHeaderTimeoutMs`, and
+`limits.responseBodyTimeoutMs`. Oversized requests receive `413`;
 excess concurrency receives `429`. Token Shuffle never converts a timeout into
 an automatic inference retry.
 

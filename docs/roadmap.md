@@ -3,7 +3,7 @@
 Versions are evidence gates, not date promises. A release advances only when its
 exit criteria are met.
 
-## v0.0 — Foundation (current)
+## v0.0 — Foundation (completed)
 
 - Agree on product vocabulary, architecture, privacy, and test strategy.
 - Create a strict TypeScript workspace and minimal loopback process.
@@ -13,7 +13,7 @@ exit criteria are met.
 Exit: foundation ADRs reviewed; the TypeScript 6 and Node 24.15 minimum migration
 is either completed or explicitly scheduled; `pnpm check` is green.
 
-## v0.1 — Transparent observer
+## v0.1 — Transparent observer (in development)
 
 - Adopt the accepted Node, TypeScript, Fastify, Undici, TypeBox, Pino, and
   development-tooling baseline.
@@ -46,6 +46,13 @@ Exit: transparent fidelity fixtures pass; a real supported client completes
 coding sessions against the reference upstream; the compatibility matrix names
 tested versions and features; default storage contains no raw content; module
 boundaries match the package-map ownership rules.
+
+Implemented development slice: Node 24.15/TypeScript 6 alignment, strict initial
+JSONC loading, local bearer authentication, one OpenAI-compatible upstream,
+byte-preserving buffered request forwarding, provider status/body preservation,
+explicit limits, and zero automatic retries. Streaming, IDs, measurement,
+storage, CLI lifecycle, real-provider smoke tests, and client verification
+remain open.
 
 ## v0.2 — Evidence dashboard
 

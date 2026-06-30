@@ -1,0 +1,24 @@
+{
+  // Token Shuffle reads the actual secrets from the process environment.
+  "configVersion": 1,
+  "mode": "observe",
+  "server": {
+    "host": "127.0.0.1",
+    "port": 3210
+  },
+  "auth": {
+    "accessToken": {
+      "fromEnv": "TOKEN_SHUFFLE_ACCESS_TOKEN"
+    }
+  },
+  "upstream": {
+    "type": "openai-compatible",
+    "baseUrl": "https://api.example-provider.com/v1",
+    "apiKey": {
+      "fromEnv": "UPSTREAM_API_KEY"
+    }
+  },
+  "storage": {
+    "retainRawContent": false
+  }
+}
