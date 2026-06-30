@@ -14,6 +14,7 @@ endpoint; it does not yet forward inference traffic.
 - **Compatibility:** [Supported clients, providers, and features](docs/compatibility.md)
 - **Documentation index:** [docs/README.md](docs/README.md)
 - **Contributors:** [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Coding agents:** [AGENTS.md](AGENTS.md)
 
 The getting-started guide clearly marks planned v0.1 and v0.2 behavior. The
 current v0.0 executable is not ready to receive agent inference traffic.

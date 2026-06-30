@@ -35,6 +35,7 @@ mistaken for current behavior.
 ## Development
 
 - [Contributing](../CONTRIBUTING.md)
+- [Coding-agent guardrails](../AGENTS.md)
 - [Change workflow](contributing/workflow.md)
 - [Testing strategy](testing/strategy.md)
 

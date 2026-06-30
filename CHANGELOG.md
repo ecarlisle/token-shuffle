@@ -19,5 +19,6 @@ This project follows Keep a Changelog conventions while it is pre-release.
   and strict local authentication/configuration decisions.
 - Accepted transparent fidelity, compatibility targets, no-retry execution,
   event/session identity, and resource-limit decisions.
+- Added repository-wide coding-agent guardrails aligned with accepted ADRs.
 - TypeScript workspace with a minimal local-only status endpoint.
 - Provider-neutral token-impact accounting with unit tests.
