@@ -4,6 +4,11 @@ This project follows Keep a Changelog conventions while it is pre-release.
 
 ## Unreleased
 
+### Added
+
+- Verified Pi Coding Agent 0.80.3 compatibility with OpenCode Zen through a
+  live proxied session.
+
 ## 0.1.0 - 2026-06-30
 
 ### Added

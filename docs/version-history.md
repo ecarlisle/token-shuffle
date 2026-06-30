@@ -33,8 +33,9 @@ proxy. The initial vertical slice provides:
   user documentation.
 
 Release validation used OpenCode 1.17.11 with OpenCode Zen and
-`deepseek-v4-flash-free`. The local event ledger recorded eight complete request
-lifecycles without degraded persistence. Pi 0.79.8, OpenAI direct, and other
+`deepseek-v4-flash-free`, followed by Pi 0.80.3 through the same
+upstream/model. The local event ledger increased from eight to eleven complete
+request lifecycles without degraded persistence. OpenAI direct and other
 client/upstream combinations remain provisional rather than inheriting the
 verified status. The dashboard is v0.2 scope.
 

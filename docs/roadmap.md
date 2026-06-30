@@ -54,9 +54,10 @@ persistence and retention, CLI lifecycle/diagnostics, explicit limits, and zero
 automatic retries.
 
 Release evidence: OpenCode 1.17.11 completed a live session through OpenCode Zen
-using `deepseek-v4-flash-free`; eight complete request lifecycles were persisted
-without degradation. Pi 0.79.8 and OpenAI direct remain provisional matrix
-entries and do not inherit this verified result.
+using `deepseek-v4-flash-free`; Pi 0.80.3 subsequently completed a live proxied
+test through the same upstream/model. Complete persisted request lifecycles
+increased from eight to eleven without degradation. OpenAI direct remains a
+provisional matrix entry and does not inherit these verified results.
 
 ## v0.2 — Evidence dashboard
 

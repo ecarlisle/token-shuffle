@@ -16,15 +16,16 @@ client, provider, field, or model works.
 
 Token Shuffle v0.1.0 has a contract-tested buffered and SSE implementation.
 OpenCode 1.17.11 has completed live traffic through OpenCode Zen with
-`deepseek-v4-flash-free`; the event ledger recorded eight complete request
-lifecycles without degraded persistence.
+`deepseek-v4-flash-free`. Pi 0.80.3 subsequently completed a live proxied test
+through the same upstream/model. The event ledger increased from eight to eleven
+complete request lifecycles without degraded persistence.
 
 | Client | Version | Ingress | Upstream/model | Status |
 | --- | --- | --- | --- | --- |
 | OpenCode | 1.17.11 | OpenAI Chat Completions | OpenCode Zen / `deepseek-v4-flash-free` | Verified |
-| Pi Coding Agent | 0.79.8 | OpenAI Chat Completions | OpenCode Zen | Provisional |
+| Pi Coding Agent | 0.80.3 | OpenAI Chat Completions | OpenCode Zen / `deepseek-v4-flash-free` | Verified |
 | OpenCode | 1.17.11 | OpenAI Chat Completions | OpenAI direct | Provisional |
-| Pi Coding Agent | 0.79.8 | OpenAI Chat Completions | OpenAI direct | Provisional |
+| Pi Coding Agent | 0.80.3 | OpenAI Chat Completions | OpenAI direct | Provisional |
 | OpenCode | — | OpenAI Chat Completions | OpenRouter | Unknown |
 | Pi Coding Agent | — | OpenAI Chat Completions | OpenRouter | Unknown |
 

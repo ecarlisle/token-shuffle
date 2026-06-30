@@ -7,8 +7,8 @@ user to judge every optimization.
 
 The current release is **v0.1.0**. The transparent observer supports
 authenticated buffered and streaming Chat Completions, structural measurement,
-privacy-first SQLite events, and a headless CLI. OpenCode with OpenCode Zen is
-the first verified live combination; other combinations remain explicitly
+privacy-first SQLite events, and a headless CLI. OpenCode and Pi with OpenCode
+Zen are verified live combinations; other combinations remain explicitly
 provisional. The dashboard begins in v0.2.
 
 ## Documentation

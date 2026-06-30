@@ -26,7 +26,7 @@ The repository is **v0.1.0**.
 - The executable exposes authenticated status and buffered/streaming
   `POST /v1/chat/completions` forwarding.
 - Structural observations persist to SQLite without raw prompt/response content.
-- OpenCode 1.17.11 with OpenCode Zen is verified. Pi and other upstream
+- OpenCode 1.17.11 and Pi 0.80.3 with OpenCode Zen are verified. Other upstream
   combinations remain provisional until their matrix entries pass.
 - The dashboard is not implemented.
 - v0.1 user guides describe the released proxy; v0.2 UI guides remain planned

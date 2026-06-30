@@ -1,8 +1,8 @@
 # Configure Pi Coding Agent
 
-> **Token Shuffle availability:** v0.1.0 supports the required protocol, but Pi
-> 0.79.8 compatibility remains provisional until a live proxied session is
-> recorded.
+> **Token Shuffle availability:** v0.1.0 is verified with Pi 0.80.3, OpenCode
+> Zen, and `deepseek-v4-flash-free`. Other providers and models remain separate
+> compatibility claims.
 
 Pi supports custom providers and proxies through
 `~/.pi/agent/models.json`. Token Shuffle's first protocol uses Pi's
