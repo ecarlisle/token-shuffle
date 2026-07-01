@@ -217,3 +217,11 @@ must not silently retry or duplicate the inference.
 
 Never work around a connection problem by binding Token Shuffle to all network
 interfaces or disabling authentication.
+
+## See also
+
+- [Configuration reference](configuration.md)
+- [OpenCode setup](agents/opencode.md)
+- [Pi setup](agents/pi.md)
+- [Dashboard guide](web-ui.md)
+- [Capability status](../capabilities.md)

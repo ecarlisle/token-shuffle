@@ -205,3 +205,10 @@ A locally smaller request can cause extra turns and increase total session
 tokens. Session-level measurement is therefore required before promoting a
 policy to a default. Quality gates may veto a policy regardless of its token or
 cost savings.
+
+## See also
+
+- [Capability status](../capabilities.md)
+- [Roadmap](../roadmap.md)
+- [Token optimization ADR](../architecture/decisions/0005-token-optimization-portfolio.md)
+- [Testing strategy](../testing/strategy.md)

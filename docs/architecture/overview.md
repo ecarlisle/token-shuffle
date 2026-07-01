@@ -123,3 +123,11 @@ The proxy is predominantly network and stream I/O, so TypeScript on Node.js is a
 reasonable initial choice. Performance-sensitive tokenization may use native or
 WASM libraries behind an interface. Rewriting the proxy in another language
 requires profiling evidence and an ADR.
+
+## See also
+
+- [Request-flow walkthroughs](request-flows.md)
+- [Package and module map](package-map.md)
+- [Technology stack](technology-stack.md)
+- [Architecture decisions](decisions/README.md)
+- [Capability status](../capabilities.md)

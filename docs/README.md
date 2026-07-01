@@ -40,6 +40,8 @@ separated by roadmap milestone.
 
 - [Contributing](../CONTRIBUTING.md)
 - [Coding-agent guardrails](../AGENTS.md)
+- [Engineering Reviews](engineering-reviews/README.md)
+- [Engineering Review Packets](erp/README.md)
 - [Change workflow](contributing/workflow.md)
 - [Testing strategy](testing/strategy.md)
 - [v0.1 release validation](testing/v0.1-release-validation.md)

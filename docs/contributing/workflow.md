@@ -56,3 +56,9 @@ in the commit body or review notes.
 - Are streaming and disconnect behavior preserved?
 - Could logs, events, fixtures, or replay expose a secret?
 - Does the roadmap place this capability in the intended release?
+
+## See also
+
+- [Contributor guide](../../CONTRIBUTING.md)
+- [Testing strategy](../testing/strategy.md)
+- [Engineering Review Packets](../erp/README.md)

@@ -310,3 +310,10 @@ lower layer first:
 7. first deterministic context policy;
 8. second provider or protocol to prove adapter boundaries;
 9. candidate routing and failover.
+
+## See also
+
+- [Architecture overview](overview.md)
+- [Request-flow walkthroughs](request-flows.md)
+- [Evolutionary package-boundary ADR](decisions/0006-evolutionary-package-boundaries.md)
+- [Change workflow](../contributing/workflow.md)

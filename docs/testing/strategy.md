@@ -92,3 +92,10 @@ A code change is complete when:
 Coverage percentage is a diagnostic, not the goal. Critical accounting,
 redaction, policy, and streaming branches should approach exhaustive behavioral
 coverage.
+
+## See also
+
+- [Change workflow](../contributing/workflow.md)
+- [Capability status](../capabilities.md)
+- [Compatibility matrix](../compatibility.md)
+- [Release validation documents](./)
