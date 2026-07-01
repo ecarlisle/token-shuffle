@@ -8,6 +8,26 @@ records the purpose and meaningful outcome of each version. The
 Versions are listed newest first. Update the current entry as its scope becomes
 real, then mark it released with a date before opening the next version entry.
 
+## v0.2 — Evidence dashboard
+
+**Status:** In development (`v0.2.0-dev.0`)
+
+The first vertical slice adds a separate administrative security boundary and a
+read-only local overview:
+
+- `token-shuffle open` creates a two-minute, single-use bootstrap code and keeps
+  it in the browser URL fragment;
+- successful exchange creates an eight-hour `HttpOnly`, `SameSite=Strict`
+  administrative cookie;
+- the agent bearer token cannot read dashboard history;
+- the overview keeps input, output, literal reduction, provider cache reads,
+  latency, and count provenance separate;
+- the React dashboard includes responsive loading, empty, expired-session, and
+  authenticated states.
+
+Request detail, replay, live event delivery, management controls, and richer
+visualization remain open.
+
 ## v0.1 — Transparent observer
 
 **Status:** Released as `v0.1.0` on 2026-06-30

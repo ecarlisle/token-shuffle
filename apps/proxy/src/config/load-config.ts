@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 
 import { Value } from "@sinclair/typebox/value";
 import { parse, printParseErrorCode, type ParseError } from "jsonc-parser";
@@ -146,5 +146,14 @@ export async function loadConfig(
   } catch (error) {
     throw new ConfigError(`Unable to read configuration at ${path}.`, { cause: error });
   }
-  return parseConfig(source, environment);
+  const config = parseConfig(source, environment);
+  return {
+    ...config,
+    storage: {
+      ...config.storage,
+      path: isAbsolute(config.storage.path)
+        ? config.storage.path
+        : resolve(dirname(path), config.storage.path),
+    },
+  };
 }

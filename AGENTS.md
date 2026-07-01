@@ -21,16 +21,16 @@ Optimize for trustworthiness before feature breadth:
 
 ## Current status
 
-The repository is **v0.1.0**.
+The stable release is **v0.1.0** and the repository is in **v0.2 development**.
 
 - The executable exposes authenticated status and buffered/streaming
   `POST /v1/chat/completions` forwarding.
 - Structural observations persist to SQLite without raw prompt/response content.
 - OpenCode 1.17.11 and Pi 0.80.3 with OpenCode Zen are verified. Other upstream
   combinations remain provisional until their matrix entries pass.
-- The dashboard is not implemented.
-- v0.1 user guides describe the released proxy; v0.2 UI guides remain planned
-  contracts.
+- The first dashboard slice implements administrative bootstrap/session
+  security and a read-only overview. Request detail, replay, live SSE updates,
+  and management controls remain planned v0.2 work.
 - The active runtime baseline is Node.js 24.15+ and TypeScript 6.
 
 Do not describe a planned capability as implemented.

@@ -1,6 +1,8 @@
 # Use the web UI
 
-> **Availability:** The web UI begins in v0.2. It is not present in v0.1.
+> **Availability:** The first v0.2 development slice is implemented. It includes
+> secure administrative sign-in and the read-only overview. Features described
+> below that are not part of that overview remain planned.
 
 The dashboard is served by the local proxy and is accessible only from the same
 workstation by default.
@@ -11,30 +13,39 @@ Open it with:
 token-shuffle open
 ```
 
-Or visit:
+The command opens a browser with a two-minute, single-use bootstrap code in the
+URL fragment. Token Shuffle exchanges it for an eight-hour `HttpOnly`,
+`SameSite=Strict` administrative cookie and removes the fragment from browser
+history. The local agent bearer token cannot read dashboard history.
+Administrative sessions also end when the proxy restarts.
 
-```text
-http://127.0.0.1:3210/
+For environments where the CLI cannot launch a browser:
+
+```sh
+token-shuffle open --no-browser
 ```
 
-The Tauri desktop shell opens the same application in a native window.
+Copy the printed URL into a browser on the same workstation. Opening
+`http://127.0.0.1:3210/` directly shows an administrative-session prompt without
+revealing history.
 
 ## Overview
 
-The overview shows:
+The implemented overview shows:
 
 - sessions and request counts;
-- baseline and forwarded input tokens;
-- literal and net tokens avoided;
-- inference avoided through eligible response-cache hits;
-- provider cache reads and writes, separately;
-- estimated provider cost and cost avoided;
-- proxy and upstream latency;
-- measurement provenance and uncertainty.
+- input and output tokens;
+- literal input tokens avoided;
+- provider cache reads, kept separate from reduction;
+- average request latency;
+- provider-reported versus estimated count provenance;
+- persistence health, dropped-event count, and raw-content retention state.
 
 Values from different categories are not combined into one savings number.
+Cost estimates, cache-write reporting, inference avoided through response reuse,
+and proxy-versus-upstream latency attribution remain planned.
 
-## Session and request details
+## Session and request details (planned)
 
 Open a session to see its sequence of requests. A request detail explains:
 
@@ -51,7 +62,7 @@ When replay capture is enabled, the detail page provides a redacted before/after
 view. Without capture, it shows structural metadata rather than reconstructing
 content that was intentionally not retained.
 
-## Privacy controls
+## Privacy controls (planned)
 
 Raw prompt and response retention is off by default. The UI must make the
 following visible:
@@ -66,7 +77,7 @@ following visible:
 The dashboard never displays provider credentials or the local proxy access
 token.
 
-## Diagnostics
+## Diagnostics (planned)
 
 Diagnostics show:
 

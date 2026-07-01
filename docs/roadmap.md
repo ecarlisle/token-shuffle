@@ -59,7 +59,7 @@ test through the same upstream/model. Complete persisted request lifecycles
 increased from eight to eleven without degradation. OpenAI direct remains a
 provisional matrix entry and does not inherit these verified results.
 
-## v0.2 — Evidence dashboard
+## v0.2 — Evidence dashboard (in development)
 
 - React 19.2 and Vite 8 SPA using REST for queries and SSE for live events.
 - Implement the documented `open` command and getting-started web UI journey.
@@ -74,6 +74,21 @@ provisional matrix entry and does not inherit these verified results.
 
 Exit: every displayed number traces to an event and explains its provenance;
 the UI never equates cache discounts with tokens avoided.
+
+Implemented first vertical slice:
+
+- single-use CLI bootstrap codes exchanged from URL fragments;
+- separate `HttpOnly`, `SameSite=Strict` administrative sessions;
+- strict same-origin checks for session mutations;
+- read-only overview API with request, session, token, cache, latency, and
+  provenance projections;
+- React/Vite/Tailwind overview with responsive loading, empty, error, and
+  authenticated states;
+- built dashboard assets served by the local proxy.
+
+Still open: live event SSE, request/session detail, redacted replay, retention
+controls, charts, browser end-to-end automation, and the remaining diagnostics
+surface.
 
 ## v0.3 — First safe transforms
 

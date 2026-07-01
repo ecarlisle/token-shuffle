@@ -9,6 +9,7 @@ coverage/
 config.local.jsonc
 config.local.jsonp
 token-shuffle.pid
+dashboard-bootstrap.json
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal

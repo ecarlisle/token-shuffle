@@ -116,6 +116,10 @@ separate session beginning in v0.2.
 counts, timing, structural metadata, keyed fingerprints, and redacted decisions
 without retaining readable prompts or responses.
 
+Relative storage paths are resolved from the configuration file's directory,
+not the shell's current working directory. The CLI can therefore be invoked
+from any project without moving its database, PID, or dashboard bootstrap files.
+
 Initial defaults retain structural execution events for 30 days and redacted
 errors for 14 days. Aggregate projections remain until deleted. Cache expiry is
 configured separately.

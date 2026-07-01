@@ -13,9 +13,9 @@ project. This page is the documentation index.
 4. [Use the web UI](getting-started/web-ui.md)
 
 The user guides describe the intended v0.1–v0.2 experience. The repository is
-currently at v0.1.0: OpenCode and Pi with OpenCode Zen are verified, other
-compatibility combinations remain provisional, and the web dashboard begins in
-v0.2.
+currently in v0.2 development on top of the stable v0.1.0 proxy. The first
+dashboard overview slice is implemented; request detail, replay, live updates,
+and management controls remain in progress.
 
 ## Product and delivery
 

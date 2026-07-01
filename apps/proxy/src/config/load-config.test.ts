@@ -1,8 +1,18 @@
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
-import { ConfigError, parseConfig } from "./load-config.js";
+import { ConfigError, loadConfig, parseConfig } from "./load-config.js";
+
+const directories: string[] = [];
+
+afterEach(async () => {
+  await Promise.all(
+    directories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })),
+  );
+});
 
 const validConfig = `{
   // Secrets are references, never literals.
@@ -73,5 +83,25 @@ describe("parseConfig", () => {
     expect(parseConfig(loopback, environment).upstream.baseUrl.protocol).toBe("http:");
     expect(() => parseConfig(remoteHttp, environment)).toThrow(/require HTTPS/);
     expect(() => parseConfig(wildcard, environment)).toThrow(ConfigError);
+  });
+
+  it("resolves a relative storage path from the configuration directory", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "token-shuffle-config-"));
+    directories.push(directory);
+    const path = join(directory, "config.jsonc");
+    await writeFile(
+      path,
+      validConfig.replace(
+        '"upstream": {',
+        '"storage": { "retainRawContent": false, "path": "./data/events.sqlite" }, "upstream": {',
+      ),
+    );
+
+    const config = await loadConfig(path, {
+      LOCAL_TOKEN: "local-secret",
+      PROVIDER_KEY: "provider-secret",
+    });
+
+    expect(config.storage.path).toBe(join(directory, "data", "events.sqlite"));
   });
 });

@@ -8,6 +8,9 @@ This project follows Keep a Changelog conventions while it is pre-release.
 
 - Verified Pi Coding Agent 0.80.3 compatibility with OpenCode Zen through a
   live proxied session.
+- Began v0.2 with single-use dashboard bootstrap authentication, separate
+  administrative cookies, a read-only evidence API, and the first responsive
+  React overview.
 
 ## 0.1.0 - 2026-06-30
 

@@ -6,6 +6,7 @@ import { dirname, join } from "node:path";
 
 import { request } from "undici";
 
+import { createDashboardBootstrap } from "./auth/admin-session.js";
 import { extractGlobalOptions, parseCliCommand } from "./cli-command.js";
 import {
   ConfigError,
@@ -24,6 +25,7 @@ Usage:
   token-shuffle config path
   token-shuffle config validate
   token-shuffle doctor
+  token-shuffle open [--no-browser]
 `;
 
 let configPathOverride: string | undefined;
@@ -38,6 +40,7 @@ try {
   else if (command.name === "start") await start(command.foreground);
   else if (command.name === "stop") await stop();
   else if (command.name === "status") await status();
+  else if (command.name === "open") await openDashboard(command.noBrowser);
   else await doctor();
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
@@ -121,6 +124,45 @@ async function status(): Promise<void> {
   const body = await response.body.text();
   if (response.statusCode !== 200) throw new Error(`Status failed with HTTP ${response.statusCode}.`);
   write(`${body}\n`);
+}
+
+async function openDashboard(noBrowser: boolean): Promise<void> {
+  const config = await loadConfig(activeConfigPath());
+  const statusResponse = await request(
+    `http://${config.server.host}:${config.server.port}/_token-shuffle/status`,
+    {
+      headers: { authorization: `Bearer ${config.auth.accessToken}` },
+      headersTimeout: 5_000,
+      bodyTimeout: 5_000,
+    },
+  );
+  const statusBody = await statusResponse.body.text();
+  if (statusResponse.statusCode !== 200) {
+    throw new Error(`Dashboard status failed with HTTP ${statusResponse.statusCode}.`);
+  }
+  const statusValue = JSON.parse(statusBody) as { readonly phase?: unknown };
+  if (statusValue.phase !== "v0.2-development") {
+    throw new Error("Restart Token Shuffle with the v0.2 development build before opening.");
+  }
+  const bootstrap = await createDashboardBootstrap(config.storage.path);
+  const url = `http://${config.server.host}:${config.server.port}/#bootstrap=${bootstrap.code}`;
+  write(`Dashboard bootstrap expires at ${bootstrap.expiresAt}.\n${url}\n`);
+  if (!noBrowser) {
+    const launcher =
+      process.platform === "darwin"
+        ? { command: "open", args: [url] }
+        : process.platform === "win32"
+          ? { command: "cmd", args: ["/c", "start", "", url] }
+          : { command: "xdg-open", args: [url] };
+    const child = spawn(launcher.command, launcher.args, {
+      detached: true,
+      stdio: "ignore",
+    });
+    child.once("error", () => {
+      write("The browser could not be opened automatically; use the URL above.\n");
+    });
+    child.unref();
+  }
 }
 
 async function doctor(): Promise<void> {

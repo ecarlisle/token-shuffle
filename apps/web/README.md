@@ -1,14 +1,15 @@
 # Local dashboard
 
-This directory is a deliberate architecture boundary, not an implemented app.
-The dashboard begins in v0.2 after recorded event contracts and metrics are
-stable enough to display without inventing meaning in the UI.
+The v0.2 dashboard is a local React application served by the proxy. Its first
+vertical slice shows privacy-safe request and session evidence from the SQLite
+event ledger.
 
-The first dashboard will show:
+Development:
 
-- baseline and forwarded input tokens;
-- literal tokens avoided and confidence/source of each count;
-- cache-discounted tokens and estimated money saved, separately;
-- added optimization work such as summarization tokens;
-- latency overhead;
-- an inspectable before/after replay with sensitive fields redacted.
+```sh
+pnpm --filter @token-shuffle/web dev
+```
+
+The Vite server proxies `/api` to `http://127.0.0.1:3210`. Open the dashboard
+through `token-shuffle open` so the browser can exchange a short-lived
+administrative bootstrap code.

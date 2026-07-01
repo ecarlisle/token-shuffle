@@ -5,11 +5,11 @@ inference providers. Its purpose is to make context use visible, reduce genuinel
 unnecessary input where that can be done safely, and show enough evidence for a
 user to judge every optimization.
 
-The current release is **v0.1.0**. The transparent observer supports
-authenticated buffered and streaming Chat Completions, structural measurement,
-privacy-first SQLite events, and a headless CLI. OpenCode and Pi with OpenCode
-Zen are verified live combinations; other combinations remain explicitly
-provisional. The dashboard begins in v0.2.
+The current stable release is **v0.1.0**, with **v0.2.0 in development**. The
+transparent observer supports authenticated buffered and streaming Chat
+Completions, structural measurement, privacy-first SQLite events, and a headless
+CLI. The first v0.2 slice adds a securely authenticated, read-only evidence
+dashboard.
 
 ## Documentation
 
@@ -20,8 +20,8 @@ provisional. The dashboard begins in v0.2.
 - **Contributors:** [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Coding agents:** [AGENTS.md](AGENTS.md)
 
-The getting-started guide separates runnable development behavior from the
-planned v0.1 and v0.2 user journey.
+The getting-started guide separates stable v0.1 behavior, runnable v0.2
+development behavior, and later planned dashboard capabilities.
 
 ## Product stance
 
@@ -51,7 +51,7 @@ secrets, and follow the
 
 ```text
 apps/proxy/       Local HTTP/SSE proxy, CLI, observation, and persistence
-apps/web/         Reserved boundary for the local dashboard
+apps/web/         React evidence dashboard
 packages/core/    Provider-neutral domain rules and metrics
 docs/             Vision, ADRs, architecture, testing, and roadmap
 ```

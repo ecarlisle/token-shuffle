@@ -3,16 +3,20 @@ import Fastify, {
   type FastifyReply,
   type FastifyRequest,
 } from "fastify";
+import fastifyStatic from "@fastify/static";
 import { once } from "node:events";
 
 import { ExecutionCoordinator } from "./application/execution-coordinator.js";
+import { AdminSessionManager } from "./auth/admin-session.js";
 import { hasValidBearerToken } from "./auth/bearer-auth.js";
 import type { RuntimeConfig } from "./config/schema.js";
+import { projectDashboard } from "./dashboard/projection.js";
 import { errorEnvelope, TokenShuffleError } from "./errors.js";
 import {
   NoopEventSink,
   ResilientEventSink,
   type EventSink,
+  type ObservationEvent,
 } from "./observation/events.js";
 import {
   parseRawJsonBody,
@@ -24,7 +28,12 @@ import { OpenAiCompatibleProvider } from "./providers/openai-compatible.js";
 
 export function buildApp(
   config: RuntimeConfig,
-  options: { readonly eventSink?: EventSink; readonly logging?: boolean } = {},
+  options: {
+    readonly eventSink?: EventSink;
+    readonly eventReader?: { list(): Promise<ObservationEvent[]> };
+    readonly logging?: boolean;
+    readonly webRoot?: string;
+  } = {},
 ): FastifyInstance {
   const app = Fastify({
     bodyLimit: config.limits.requestBodyBytes,
@@ -56,6 +65,8 @@ export function buildApp(
     eventSink,
   );
   const shutdownController = new AbortController();
+  const adminSessions = new AdminSessionManager(config.storage.path);
+  const dashboardOrigin = `http://${config.server.host}:${config.server.port}`;
 
   app.addContentTypeParser(
     "application/json",
@@ -132,12 +143,112 @@ export function buildApp(
     async () => ({
       mode: "observe",
       name: "token-shuffle",
-      phase: "v0.1",
+      phase: "v0.2-development",
       persistence: eventSink.health,
       ready: true,
       streaming: true,
-      version: "0.1.0",
+      version: "0.2.0-dev.0",
     }),
+  );
+
+  if (options.webRoot !== undefined) {
+    void app.register(fastifyStatic, {
+      root: options.webRoot,
+      prefix: "/",
+      wildcard: false,
+      setHeaders(response, path) {
+        response.setHeader("x-content-type-options", "nosniff");
+        response.setHeader("x-frame-options", "DENY");
+        response.setHeader("referrer-policy", "no-referrer");
+        if (path.endsWith(".html")) {
+          response.setHeader(
+            "content-security-policy",
+            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
+              "connect-src 'self'; img-src 'self' data:; font-src 'self'; " +
+              "frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+          );
+          response.setHeader("cache-control", "no-store");
+        }
+      },
+    });
+  }
+
+  const requireDashboardOrigin = async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ): Promise<void> => {
+    if (request.headers.origin !== dashboardOrigin) {
+      sendDashboardError(reply, 403, "invalid_origin", "Dashboard origin is not allowed.");
+    }
+  };
+
+  const authenticateDashboard = async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ): Promise<void> => {
+    if (!adminSessions.authenticate(request.headers.cookie)) {
+      sendDashboardError(
+        reply,
+        401,
+        "admin_session_required",
+        "Open the dashboard through `token-shuffle open`.",
+      );
+    }
+  };
+
+  app.post<{ Body: RawJsonBody }>(
+    "/api/admin/session",
+    { preHandler: requireDashboardOrigin },
+    async (request, reply) => {
+      const code = readBootstrapCode(request.body);
+      if (code === undefined) {
+        sendDashboardError(reply, 400, "invalid_bootstrap", "Bootstrap code is required.");
+        return;
+      }
+      const token = await adminSessions.exchange(code);
+      if (token === undefined) {
+        sendDashboardError(
+          reply,
+          401,
+          "invalid_bootstrap",
+          "Bootstrap code is invalid, expired, or already used.",
+        );
+        return;
+      }
+      reply
+        .header("cache-control", "no-store")
+        .header("set-cookie", adminSessions.sessionCookie(token))
+        .send({ authenticated: true });
+    },
+  );
+
+  app.delete(
+    "/api/admin/session",
+    { preHandler: [requireDashboardOrigin, authenticateDashboard] },
+    async (request, reply) => {
+      adminSessions.revoke(request.headers.cookie);
+      reply
+        .header("cache-control", "no-store")
+        .header("set-cookie", adminSessions.expiredCookie())
+        .send({ authenticated: false });
+    },
+  );
+
+  app.get(
+    "/api/dashboard/overview",
+    { preHandler: authenticateDashboard },
+    async (_request, reply) => {
+      const events = (await options.eventReader?.list()) ?? [];
+      reply.header("cache-control", "no-store");
+      return {
+        ...projectDashboard(events),
+        system: {
+          mode: config.mode,
+          persistence: eventSink.health,
+          version: "0.2.0-dev.0",
+        },
+      };
+    },
   );
 
   app.post<{ Body: RawJsonBody }>(
@@ -318,6 +429,31 @@ function sendLocalError(reply: FastifyReply, error: TokenShuffleError): void {
     .header("x-token-shuffle-error", "true")
     .code(error.statusCode)
     .send(errorEnvelope(error));
+}
+
+function sendDashboardError(
+  reply: FastifyReply,
+  statusCode: number,
+  code: string,
+  message: string,
+): void {
+  reply
+    .header("cache-control", "no-store")
+    .code(statusCode)
+    .send({ error: { type: "dashboard_error", code, message } });
+}
+
+function readBootstrapCode(body: RawJsonBody): string | undefined {
+  if (
+    typeof body.parsed === "object" &&
+    body.parsed !== null &&
+    "code" in body.parsed &&
+    typeof body.parsed.code === "string" &&
+    body.parsed.code.length <= 128
+  ) {
+    return body.parsed.code;
+  }
+  return undefined;
 }
 
 class SseEventLimit {

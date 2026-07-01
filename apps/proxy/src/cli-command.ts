@@ -3,6 +3,7 @@ import { ConfigError } from "./config/load-config.js";
 export type CliCommand =
   | { readonly name: "start"; readonly foreground: boolean }
   | { readonly name: "stop" | "status" | "doctor" }
+  | { readonly name: "open"; readonly noBrowser: boolean }
   | { readonly name: "config-path" | "config-validate" }
   | { readonly name: "help" };
 
@@ -37,6 +38,11 @@ export function parseCliCommand(args: readonly string[]): CliCommand {
     const unknown = args.slice(1).filter((argument) => argument !== "--foreground");
     if (unknown.length > 0) throw new ConfigError(`Unknown start option: ${unknown[0]}`);
     return { name: "start", foreground: args.includes("--foreground") };
+  }
+  if (args[0] === "open") {
+    const unknown = args.slice(1).filter((argument) => argument !== "--no-browser");
+    if (unknown.length > 0) throw new ConfigError(`Unknown open option: ${unknown[0]}`);
+    return { name: "open", noBrowser: args.includes("--no-browser") };
   }
   if (args[0] === "stop" || args[0] === "status" || args[0] === "doctor") {
     if (args.length !== 1) throw new ConfigError(`Unexpected argument: ${args[1]}`);

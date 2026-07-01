@@ -12,6 +12,11 @@ describe("parseCliCommand", () => {
     expect(parseCliCommand(["stop"])).toEqual({ name: "stop" });
     expect(parseCliCommand(["status"])).toEqual({ name: "status" });
     expect(parseCliCommand(["doctor"])).toEqual({ name: "doctor" });
+    expect(parseCliCommand(["open"])).toEqual({ name: "open", noBrowser: false });
+    expect(parseCliCommand(["open", "--no-browser"])).toEqual({
+      name: "open",
+      noBrowser: true,
+    });
     expect(parseCliCommand(["config", "path"])).toEqual({ name: "config-path" });
     expect(parseCliCommand(["config", "validate"])).toEqual({
       name: "config-validate",
@@ -21,6 +26,9 @@ describe("parseCliCommand", () => {
   it("rejects unknown options instead of ignoring them", () => {
     expect(() => parseCliCommand(["start", "--token=secret"])).toThrow(
       /Unknown start option/,
+    );
+    expect(() => parseCliCommand(["open", "--token=secret"])).toThrow(
+      /Unknown open option/,
     );
     expect(() => parseCliCommand(["wat"])).toThrow(/Unknown command/);
   });
