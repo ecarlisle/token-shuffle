@@ -31,6 +31,7 @@ separated by roadmap milestone.
 ## Architecture
 
 - [Architecture overview](architecture/overview.md)
+- [Request-flow walkthroughs](architecture/request-flows.md)
 - [Package and module map](architecture/package-map.md)
 - [Technology stack](architecture/technology-stack.md)
 - [Architecture decisions](architecture/decisions/README.md)

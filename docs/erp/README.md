@@ -33,7 +33,7 @@ Each ERP should describe:
 | --- | --- | --- | --- |
 | ERP-0001 | README Front Door | P0 | Completed |
 | ERP-0002 | Capability and Version Truthfulness | P0 | Completed |
-| ERP-0003 | Architecture Happy Paths | P1 | Proposed |
+| ERP-0003 | Architecture Happy Paths | P1 | Completed |
 | ERP-0004 | Documentation Navigation | P1 | Proposed |
 | ERP-0005 | Architecture Consistency Audit | P1 | Proposed |
 | ERP-0006 | Documentation Quality Standards | P1 | Proposed |

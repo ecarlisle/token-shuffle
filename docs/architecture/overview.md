@@ -45,6 +45,9 @@ runnable and does not depend on the desktop window lifecycle. See the
 
 ## Request lifecycle
 
+For narrative startup, observe, optimize, dashboard, and shutdown sequences, see
+[Request-flow walkthroughs](request-flows.md).
+
 1. Assign a local request ID, an attempt ID, and an explicit or inferred session
    association.
 2. Retain the raw request body and parse a separate measurement view.
