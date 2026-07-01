@@ -7,7 +7,7 @@ test-results/
 .DS_Store
 .env
 .env.*
-./*.sh
+/*.sh
 !.env.example
 config.local.jsonc
 config.local.jsonp
