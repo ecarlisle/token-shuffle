@@ -58,16 +58,16 @@ export class SqliteEventStore implements EventSink {
     return (await this.#request("list")) as ObservationEvent[];
   }
 
-  public async deleteRequest(requestId: string): Promise<void> {
-    await this.#request("deleteRequest", requestId);
+  public async deleteRequest(requestId: string): Promise<number> {
+    return (await this.#request("deleteRequest", requestId)) as number;
   }
 
-  public async deleteSession(sessionId: string): Promise<void> {
-    await this.#request("deleteSession", sessionId);
+  public async deleteSession(sessionId: string): Promise<number> {
+    return (await this.#request("deleteSession", sessionId)) as number;
   }
 
-  public async deleteAll(): Promise<void> {
-    await this.#request("deleteAll");
+  public async deleteAll(): Promise<number> {
+    return (await this.#request("deleteAll")) as number;
   }
 
   public async pruneExpired(now = new Date()): Promise<number> {
@@ -184,11 +184,15 @@ parentPort.on("message", ({ id, type, payload }) => {
         "SELECT event_json FROM observation_events ORDER BY occurred_at, rowid"
       ).all().map(row => JSON.parse(row.event_json));
     } else if (type === "deleteRequest") {
-      database.prepare("DELETE FROM observation_events WHERE request_id = ?").run(payload);
+      result = Number(database.prepare(
+        "DELETE FROM observation_events WHERE request_id = ?"
+      ).run(payload).changes);
     } else if (type === "deleteSession") {
-      database.prepare("DELETE FROM observation_events WHERE session_id = ?").run(payload);
+      result = Number(database.prepare(
+        "DELETE FROM observation_events WHERE session_id = ?"
+      ).run(payload).changes);
     } else if (type === "deleteAll") {
-      database.exec("DELETE FROM observation_events");
+      result = Number(database.prepare("DELETE FROM observation_events").run().changes);
     } else if (type === "prune") {
       result = Number(database.prepare(
         "DELETE FROM observation_events WHERE expires_at <= ?"

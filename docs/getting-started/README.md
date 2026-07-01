@@ -1,8 +1,8 @@
 # Getting started
 
-> **Availability:** The proxy journey is implemented in v0.1.0. OpenCode and Pi
-> with OpenCode Zen are verified; other upstream combinations remain
-> provisional. The web UI begins in v0.2.
+> **Availability:** The proxy and evidence dashboard are implemented in v0.2.0.
+> OpenCode and Pi with OpenCode Zen are verified; other upstream combinations
+> remain provisional.
 
 Token Shuffle runs on your workstation between a coding agent and an inference
 provider:
@@ -160,8 +160,6 @@ Confirm that:
 
 ## 6. Open the dashboard
 
-For v0.2:
-
 ```sh
 token-shuffle open
 ```
@@ -186,7 +184,7 @@ must not silently retry or duplicate the inference.
 | Unauthorized | Agent and proxy environments use the same local access token |
 | Provider rejected key | `UPSTREAM_API_KEY` belongs to the configured upstream |
 | Model not found | Agent model ID exactly matches an upstream model ID |
-| No dashboard | The evidence dashboard begins in v0.2 |
+| No dashboard | Run `token-shuffle open`; do not reuse an expired bootstrap URL |
 | No readable replay | Raw-content retention is off by default |
 
 Never work around a connection problem by binding Token Shuffle to all network

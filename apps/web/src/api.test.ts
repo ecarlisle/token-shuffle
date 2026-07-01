@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { exchangeBootstrap, loadOverview } from "./api.js";
+import {
+  deleteRequestEvidence,
+  exchangeBootstrap,
+  loadOverview,
+  loadRequest,
+} from "./api.js";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -44,6 +49,30 @@ describe("dashboard API client", () => {
         name: "ApiError",
         status: 401,
       }),
+    );
+  });
+
+  it("encodes detail identifiers and sends same-origin retention mutations", async () => {
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve(new Response(JSON.stringify({ id: "request/one" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await loadRequest("request/one");
+    await deleteRequestEvidence("request/one");
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "/api/dashboard/requests/request%2Fone",
+      expect.objectContaining({ credentials: "include" }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      "/api/dashboard/requests/request%2Fone",
+      expect.objectContaining({ method: "DELETE", credentials: "include" }),
     );
   });
 });

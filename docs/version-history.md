@@ -10,10 +10,10 @@ real, then mark it released with a date before opening the next version entry.
 
 ## v0.2 — Evidence dashboard
 
-**Status:** In development (`v0.2.0-dev.0`)
+**Status:** Released as `v0.2.0` on 2026-07-01
 
-The first vertical slice adds a separate administrative security boundary and a
-read-only local overview:
+v0.2 adds a separate administrative security boundary and a local evidence
+dashboard:
 
 - `token-shuffle open` creates a two-minute, single-use bootstrap code and keeps
   it in the browser URL fragment;
@@ -22,11 +22,17 @@ read-only local overview:
 - the agent bearer token cannot read dashboard history;
 - the overview keeps input, output, literal reduction, provider cache reads,
   latency, and count provenance separate;
-- the React dashboard includes responsive loading, empty, expired-session, and
-  authenticated states.
-
-Request detail, replay, live event delivery, management controls, and richer
-visualization remain open.
+- request and session details trace measurements to ordered persisted events;
+- structural replay explains baseline, forwarding, and optimization work without
+  reconstructing raw content;
+- live persisted events invalidate dashboard queries through SSE;
+- token charts preserve accounting categories rather than combining them;
+- diagnostics expose non-secret runtime and retention settings;
+- request, session, and complete-history deletion require the administrative
+  cookie and strict same-origin checks;
+- deterministic shadow-policy events record candidate eligibility without
+  mutating traffic or claiming unrealized savings;
+- Playwright verifies the overview-to-detail provenance journey.
 
 ## v0.1 — Transparent observer
 

@@ -21,16 +21,18 @@ Optimize for trustworthiness before feature breadth:
 
 ## Current status
 
-The stable release is **v0.1.0** and the repository is in **v0.2 development**.
+The stable release is **v0.2.0**. **v0.3 is planned but not yet implemented.**
 
 - The executable exposes authenticated status and buffered/streaming
   `POST /v1/chat/completions` forwarding.
 - Structural observations persist to SQLite without raw prompt/response content.
 - OpenCode 1.17.11 and Pi 0.80.3 with OpenCode Zen are verified. Other upstream
   combinations remain provisional until their matrix entries pass.
-- The first dashboard slice implements administrative bootstrap/session
-  security and a read-only overview. Request detail, replay, live SSE updates,
-  and management controls remain planned v0.2 work.
+- The dashboard implements separate administrative authentication, event-backed
+  overview/detail views, structural replay, live SSE invalidation, diagnostics,
+  and immediate evidence deletion.
+- Deterministic shadow-policy events never mutate forwarded requests or claim
+  hypothetical scope as realized savings.
 - The active runtime baseline is Node.js 24.15+ and TypeScript 6.
 
 Do not describe a planned capability as implemented.

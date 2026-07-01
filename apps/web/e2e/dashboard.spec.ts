@@ -1,0 +1,102 @@
+import { expect, test } from "@playwright/test";
+
+const request = {
+  id: "request-1234567890",
+  sessionId: "session-1234567890",
+  association: "explicit",
+  model: "synthetic-model",
+  timestamp: "2026-06-30T10:00:02.000Z",
+  statusCode: 200,
+  durationMs: 1250,
+  inputTokens: 118,
+  outputTokens: 42,
+  literalInputTokensAvoided: 0,
+  cacheReadInputTokens: 80,
+  provenance: "provider-reported",
+};
+
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/dashboard/events", (route) =>
+    route.fulfill({ status: 200, contentType: "text/event-stream", body: "event: ready\ndata: {}\n\n" }),
+  );
+  await page.route("**/api/dashboard/overview", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        generatedAt: "2026-06-30T10:00:02.000Z",
+        summary: {
+          requests: 1,
+          sessions: 1,
+          inputTokens: 118,
+          outputTokens: 42,
+          literalInputTokensAvoided: 0,
+          cacheReadInputTokens: 80,
+          averageLatencyMs: 1250,
+        },
+        provenance: { providerReportedRequests: 1, estimatedRequests: 0 },
+        timeline: [{
+          date: "2026-06-30",
+          inputTokens: 118,
+          outputTokens: 42,
+          cacheReadInputTokens: 80,
+          literalInputTokensAvoided: 0,
+        }],
+        sessions: [{
+          id: request.sessionId,
+          association: "explicit",
+          requests: 1,
+          model: request.model,
+          inputTokens: 118,
+          outputTokens: 42,
+          lastActivity: request.timestamp,
+        }],
+        recentRequests: [request],
+        system: {
+          mode: "observe",
+          persistence: { degraded: false, droppedEvents: 0 },
+          version: "0.2.0",
+        },
+      }),
+    }),
+  );
+  await page.route("**/api/dashboard/requests/request-1234567890", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...request,
+        protocol: "openai-chat-completions",
+        provider: "openai-compatible",
+        attemptId: "attempt-1",
+        structure: { messageCount: 4, forwardedInputTokens: 118 },
+        events: [{
+          id: "event-1",
+          type: "request.measured",
+          timestamp: request.timestamp,
+          attemptId: "attempt-1",
+          retentionClass: "structural",
+          data: { messageCount: 4 },
+        }],
+        replay: {
+          available: false,
+          reason: "Raw content retention is disabled.",
+          baselineInputTokens: 118,
+          forwardedInputTokens: 118,
+          optimizationTokens: 0,
+        },
+      }),
+    }),
+  );
+});
+
+test("traces overview evidence into a redacted request detail", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "What the proxy observed." })).toBeVisible();
+  await expect(page.getByText("Provider cache reads")).toBeVisible();
+  await page.getByRole("link", { name: /request-12/i }).click();
+  await expect(page.getByRole("heading", { name: "request-1234567" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Structural replay" })).toBeVisible();
+  await expect(page.getByText("Raw content retention is disabled.")).toBeVisible();
+  await expect(page.getByText("request.measured")).toBeVisible();
+});

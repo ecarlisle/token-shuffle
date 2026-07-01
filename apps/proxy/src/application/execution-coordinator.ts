@@ -147,6 +147,16 @@ class RequestObservation {
       provenance: "estimate",
       ...this.#structuralMetrics,
     });
+    this.emitShadowEvaluation(
+      "exact-redundancy",
+      numberMetric(this.#structuralMetrics.repeatedInputTokens),
+      1,
+    );
+    this.emitShadowEvaluation(
+      "tool-output-compaction",
+      numberMetric(this.#structuralMetrics.toolOutputTokens),
+      256,
+    );
     this.emit("route.selected", { reason: "configured-single-upstream" });
     this.emit("attempt.started", {});
   }
@@ -158,6 +168,25 @@ class RequestObservation {
         durationMs: roundedDuration(this.#startedAt),
       });
     }
+  }
+
+  private emitShadowEvaluation(
+    policy: string,
+    observedInputTokens: number,
+    minimumTokens: number,
+  ): void {
+    this.emit("policy.shadow_evaluated", {
+      applied: false,
+      eligible: observedInputTokens >= minimumTokens,
+      minimumTokens,
+      observedInputTokens,
+      policy,
+      policyVersion: "shadow-v1",
+      reason:
+        observedInputTokens >= minimumTokens
+          ? "candidate-scope-observed"
+          : "below-candidate-threshold",
+    });
   }
 
   public complete(
@@ -343,4 +372,8 @@ function estimateTokensAllowZero(bytes: number): number {
 
 function ratio(part: number, whole: number): number {
   return whole === 0 ? 0 : Math.round((part / whole) * 10_000) / 10_000;
+}
+
+function numberMetric(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }

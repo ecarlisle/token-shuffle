@@ -59,7 +59,7 @@ test through the same upstream/model. Complete persisted request lifecycles
 increased from eight to eleven without degradation. OpenAI direct remains a
 provisional matrix entry and does not inherit these verified results.
 
-## v0.2 — Evidence dashboard (in development)
+## v0.2 — Evidence dashboard (released 2026-07-01)
 
 - React 19.2 and Vite 8 SPA using REST for queries and SSE for live events.
 - Implement the documented `open` command and getting-started web UI journey.
@@ -75,20 +75,29 @@ provisional matrix entry and does not inherit these verified results.
 Exit: every displayed number traces to an event and explains its provenance;
 the UI never equates cache discounts with tokens avoided.
 
-Implemented first vertical slice:
+Implemented:
 
 - single-use CLI bootstrap codes exchanged from URL fragments;
 - separate `HttpOnly`, `SameSite=Strict` administrative sessions;
 - strict same-origin checks for session mutations;
 - read-only overview API with request, session, token, cache, latency, and
   provenance projections;
-- React/Vite/Tailwind overview with responsive loading, empty, error, and
-  authenticated states;
+- request and session detail with ordered event provenance and privacy-safe
+  structural replay;
+- live SSE invalidation after persisted events;
+- separate charts for input, output, cache reads, and literal reduction;
+- diagnostics, visible retention settings, and same-origin immediate deletion
+  for requests, sessions, or all history;
+- explicit non-mutating shadow evaluation of exact redundancy and tool-output
+  compaction candidates;
+- React/Vite/Tailwind views with responsive loading, empty, error, and
+  authenticated states plus Playwright browser coverage;
 - built dashboard assets served by the local proxy.
 
-Still open: live event SSE, request/session detail, redacted replay, retention
-controls, charts, browser end-to-end automation, and the remaining diagnostics
-surface.
+Exit evidence: every displayed total is projected from versioned observation
+events; request details expose the contributing lifecycle; cache reads remain
+separate from literal token reduction; and automated browser coverage follows
+an overview value into redacted structural replay.
 
 ## v0.3 — First safe transforms
 

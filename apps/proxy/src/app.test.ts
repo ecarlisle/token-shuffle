@@ -205,6 +205,8 @@ describe("buffered Chat Completions forwarding", () => {
     expect(eventSink.events.map((event) => event.type)).toEqual([
       "request.received",
       "request.measured",
+      "policy.shadow_evaluated",
+      "policy.shadow_evaluated",
       "route.selected",
       "attempt.started",
       "attempt.first_byte",
@@ -217,6 +219,24 @@ describe("buffered Chat Completions forwarding", () => {
       association: "explicit",
       method: "x-token-shuffle-session-id",
     });
+    expect(
+      eventSink.events.filter((event) => event.type === "policy.shadow_evaluated"),
+    ).toEqual([
+      expect.objectContaining({
+        data: expect.objectContaining({
+          applied: false,
+          policy: "exact-redundancy",
+          policyVersion: "shadow-v1",
+        }),
+      }),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          applied: false,
+          policy: "tool-output-compaction",
+          policyVersion: "shadow-v1",
+        }),
+      }),
+    ]);
     expect(JSON.stringify(eventSink.events)).not.toContain(rawBody);
   });
 

@@ -10,10 +10,15 @@ import { ExecutionCoordinator } from "./application/execution-coordinator.js";
 import { AdminSessionManager } from "./auth/admin-session.js";
 import { hasValidBearerToken } from "./auth/bearer-auth.js";
 import type { RuntimeConfig } from "./config/schema.js";
-import { projectDashboard } from "./dashboard/projection.js";
+import {
+  projectDashboard,
+  projectRequest,
+  projectSession,
+} from "./dashboard/projection.js";
 import { errorEnvelope, TokenShuffleError } from "./errors.js";
 import {
   NoopEventSink,
+  ObservableEventSink,
   ResilientEventSink,
   type EventSink,
   type ObservationEvent,
@@ -26,11 +31,22 @@ import {
 } from "./protocol/openai/chat-completions.js";
 import { OpenAiCompatibleProvider } from "./providers/openai-compatible.js";
 
+export interface DashboardEventStore {
+  list(): Promise<ObservationEvent[]>;
+  deleteRequest?(requestId: string): Promise<number>;
+  deleteSession?(sessionId: string): Promise<number>;
+  deleteAll?(): Promise<number>;
+  diagnostics?(): Promise<{
+    readonly sqliteVersion: string;
+    readonly eventCount: number;
+  }>;
+}
+
 export function buildApp(
   config: RuntimeConfig,
   options: {
     readonly eventSink?: EventSink;
-    readonly eventReader?: { list(): Promise<ObservationEvent[]> };
+    readonly eventReader?: DashboardEventStore;
     readonly logging?: boolean;
     readonly webRoot?: string;
   } = {},
@@ -58,7 +74,10 @@ export function buildApp(
     responseHeaderTimeoutMs: config.limits.responseHeaderTimeoutMs,
     responseBodyTimeoutMs: config.limits.responseBodyTimeoutMs,
   });
-  const eventSink = new ResilientEventSink(options.eventSink ?? new NoopEventSink());
+  const resilientEventSink = new ResilientEventSink(
+    options.eventSink ?? new NoopEventSink(),
+  );
+  const eventSink = new ObservableEventSink(resilientEventSink);
   const coordinator = new ExecutionCoordinator(
     provider,
     config.limits.concurrentInferenceRequests,
@@ -143,11 +162,11 @@ export function buildApp(
     async () => ({
       mode: "observe",
       name: "token-shuffle",
-      phase: "v0.2-development",
-      persistence: eventSink.health,
+      phase: "v0.2",
+      persistence: resilientEventSink.health,
       ready: true,
       streaming: true,
-      version: "0.2.0-dev.0",
+      version: "0.2.0",
     }),
   );
 
@@ -171,6 +190,13 @@ export function buildApp(
         }
       },
     });
+    const sendDashboardShell = async (
+      _request: FastifyRequest,
+      reply: FastifyReply,
+    ): Promise<FastifyReply> => reply.sendFile("index.html");
+    app.get("/diagnostics", sendDashboardShell);
+    app.get("/requests/*", sendDashboardShell);
+    app.get("/sessions/*", sendDashboardShell);
   }
 
   const requireDashboardOrigin = async (
@@ -244,10 +270,139 @@ export function buildApp(
         ...projectDashboard(events),
         system: {
           mode: config.mode,
-          persistence: eventSink.health,
-          version: "0.2.0-dev.0",
+          persistence: resilientEventSink.health,
+          version: "0.2.0",
         },
       };
+    },
+  );
+
+  app.get<{ Params: { requestId: string } }>(
+    "/api/dashboard/requests/:requestId",
+    { preHandler: authenticateDashboard },
+    async (request, reply) => {
+      const detail = projectRequest(
+        (await options.eventReader?.list()) ?? [],
+        request.params.requestId,
+      );
+      reply.header("cache-control", "no-store");
+      if (detail === undefined) {
+        sendDashboardError(reply, 404, "request_not_found", "Request evidence was not found.");
+        return;
+      }
+      return detail;
+    },
+  );
+
+  app.get<{ Params: { sessionId: string } }>(
+    "/api/dashboard/sessions/:sessionId",
+    { preHandler: authenticateDashboard },
+    async (request, reply) => {
+      const detail = projectSession(
+        (await options.eventReader?.list()) ?? [],
+        request.params.sessionId,
+      );
+      reply.header("cache-control", "no-store");
+      if (detail === undefined) {
+        sendDashboardError(reply, 404, "session_not_found", "Session evidence was not found.");
+        return;
+      }
+      return detail;
+    },
+  );
+
+  app.get(
+    "/api/dashboard/diagnostics",
+    { preHandler: authenticateDashboard },
+    async (_request, reply) => {
+      const diagnostics = await options.eventReader?.diagnostics?.();
+      reply.header("cache-control", "no-store");
+      return {
+        mode: config.mode,
+        version: "0.2.0",
+        phase: "v0.2",
+        server: {
+          host: config.server.host,
+          port: config.server.port,
+        },
+        storage: {
+          path: config.storage.path,
+          rawContentRetained: config.storage.retainRawContent,
+          structuralRetentionDays: config.storage.structuralRetentionDays,
+          errorRetentionDays: config.storage.errorRetentionDays,
+          eventCount: diagnostics?.eventCount ?? null,
+          sqliteVersion: diagnostics?.sqliteVersion ?? null,
+          degraded: resilientEventSink.health.degraded,
+          droppedEvents: resilientEventSink.health.droppedEvents,
+        },
+        capabilities: {
+          ingress: ["openai-chat-completions"],
+          providers: ["openai-compatible"],
+          streaming: true,
+          retries: false,
+        },
+      };
+    },
+  );
+
+  app.get(
+    "/api/dashboard/events",
+    { preHandler: authenticateDashboard },
+    async (request, reply) => {
+      reply.hijack();
+      reply.raw.writeHead(200, {
+        "cache-control": "no-cache, no-store",
+        connection: "keep-alive",
+        "content-type": "text/event-stream; charset=utf-8",
+        "x-accel-buffering": "no",
+      });
+      reply.raw.write("event: ready\ndata: {}\n\n");
+      const unsubscribe = eventSink.subscribe((event) => {
+        if (!reply.raw.destroyed) {
+          reply.raw.write(`event: observation\ndata: ${JSON.stringify(event)}\n\n`);
+        }
+      });
+      const heartbeat = setInterval(() => {
+        if (!reply.raw.destroyed) reply.raw.write(": heartbeat\n\n");
+      }, 15_000);
+      const cleanup = (): void => {
+        clearInterval(heartbeat);
+        unsubscribe();
+      };
+      request.raw.once("close", cleanup);
+      reply.raw.once("close", cleanup);
+    },
+  );
+
+  app.delete<{ Params: { requestId: string } }>(
+    "/api/dashboard/requests/:requestId",
+    { preHandler: [requireDashboardOrigin, authenticateDashboard] },
+    async (request, reply) => {
+      const deleted =
+        (await options.eventReader?.deleteRequest?.(request.params.requestId)) ?? 0;
+      reply.header("cache-control", "no-store");
+      return { deletedEvents: deleted };
+    },
+  );
+
+  app.delete<{ Params: { sessionId: string } }>(
+    "/api/dashboard/sessions/:sessionId",
+    { preHandler: [requireDashboardOrigin, authenticateDashboard] },
+    async (request, reply) => {
+      const deleted =
+        (await options.eventReader?.deleteSession?.(request.params.sessionId)) ?? 0;
+      reply.header("cache-control", "no-store");
+      return { deletedEvents: deleted };
+    },
+  );
+
+  app.delete(
+    "/api/dashboard/history",
+    { preHandler: [requireDashboardOrigin, authenticateDashboard] },
+    async (_request, reply) => {
+      const deleted = (await options.eventReader?.deleteAll?.()) ?? 0;
+      reply.header("cache-control", "no-store");
+      return { deletedEvents: deleted };
     },
   );
 

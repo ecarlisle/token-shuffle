@@ -4,13 +4,20 @@ This project follows Keep a Changelog conventions while it is pre-release.
 
 ## Unreleased
 
+## 0.2.0 - 2026-07-01
+
 ### Added
 
 - Verified Pi Coding Agent 0.80.3 compatibility with OpenCode Zen through a
   live proxied session.
-- Began v0.2 with single-use dashboard bootstrap authentication, separate
-  administrative cookies, a read-only evidence API, and the first responsive
-  React overview.
+- Single-use dashboard bootstrap authentication and separate administrative
+  cookies.
+- Event-backed overview, request/session detail, structural replay, diagnostics,
+  retention visibility, and immediate evidence deletion.
+- Live SSE dashboard invalidation and category-preserving token charts.
+- Deterministic shadow evaluation for exact redundancy and tool-output
+  compaction candidates without mutating inference traffic.
+- Automated browser coverage for evidence provenance and redaction.
 
 ## 0.1.0 - 2026-06-30
 

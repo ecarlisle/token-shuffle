@@ -95,8 +95,8 @@ describe("SqliteEventStore", () => {
     );
 
     expect(await store.pruneExpired()).toBe(1);
-    await store.deleteRequest("request-delete");
-    await store.deleteSession("session-delete");
+    expect(await store.deleteRequest("request-delete")).toBe(1);
+    expect(await store.deleteSession("session-delete")).toBe(1);
     expect(await store.list()).toEqual([]);
   });
 });

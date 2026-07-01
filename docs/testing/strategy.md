@@ -56,8 +56,10 @@ tool-call correctness, latency, and provider cost.
 
 ### UI end-to-end tests
 
-Once the dashboard exists, Playwright verifies metric labels, provenance,
-before/after replay, redaction, retention controls, and empty/error states.
+Playwright verifies metric labels, provenance, structural replay, redaction,
+retention controls, and empty/error states. The v0.2 release journey follows a
+persisted overview value into request detail and confirms that raw content is
+not reconstructed.
 
 ### Documentation contract tests
 

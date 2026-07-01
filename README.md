@@ -5,10 +5,9 @@ inference providers. Its purpose is to make context use visible, reduce genuinel
 unnecessary input where that can be done safely, and show enough evidence for a
 user to judge every optimization.
 
-The current stable release is **v0.1.0**, with **v0.2.0 in development**. The
-transparent observer supports authenticated buffered and streaming Chat
-Completions, structural measurement, privacy-first SQLite events, and a headless
-CLI. The first v0.2 slice adds a securely authenticated, read-only evidence
+The current stable release is **v0.2.0**. The transparent observer supports
+authenticated buffered and streaming Chat Completions, structural measurement,
+privacy-first SQLite events, and a separately authenticated local evidence
 dashboard.
 
 ## Documentation
@@ -20,8 +19,8 @@ dashboard.
 - **Contributors:** [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Coding agents:** [AGENTS.md](AGENTS.md)
 
-The getting-started guide separates stable v0.1 behavior, runnable v0.2
-development behavior, and later planned dashboard capabilities.
+The getting-started guide covers the stable proxy, agent configuration, and
+v0.2 evidence dashboard.
 
 ## Product stance
 

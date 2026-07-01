@@ -75,7 +75,7 @@ describe("dashboard routes", () => {
     expect(overview.statusCode).toBe(200);
     expect(overview.json()).toMatchObject({
       summary: { requests: 0, sessions: 0 },
-      system: { version: "0.2.0-dev.0" },
+      system: { version: "0.2.0" },
     });
     expect(reused.statusCode).toBe(401);
   });
@@ -89,15 +89,139 @@ describe("dashboard routes", () => {
     apps.push(app);
 
     const shell = await app.inject({ method: "GET", url: "/" });
+    const detailShell = await app.inject({
+      method: "GET",
+      url: "/requests/synthetic-request",
+    });
     const history = await app.inject({ method: "GET", url: "/api/dashboard/overview" });
 
     expect(shell.statusCode).toBe(200);
     expect(shell.body).toContain("Dashboard shell");
     expect(shell.headers["content-security-policy"]).toContain("default-src 'self'");
     expect(shell.headers["x-frame-options"]).toBe("DENY");
+    expect(detailShell.statusCode).toBe(200);
+    expect(detailShell.body).toContain("Dashboard shell");
     expect(history.statusCode).toBe(401);
   });
+
+  it("serves event-derived details and protects destructive retention controls", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "token-shuffle-dashboard-detail-"));
+    directories.push(directory);
+    const config = createConfig(join(directory, "events.sqlite"));
+    const events: ObservationEvent[] = [
+      createEvent("request.measured", {
+        baselineInputTokens: 10,
+        forwardedInputTokens: 10,
+        literalInputTokensAvoided: 0,
+        provenance: "estimate",
+      }),
+      createEvent("request.completed", { statusCode: 200, durationMs: 25 }),
+    ];
+    let deletedRequest: string | undefined;
+    const eventReader = {
+      list: async () => events,
+      deleteRequest: async (requestId: string) => {
+        deletedRequest = requestId;
+        return 2;
+      },
+      diagnostics: async () => ({ sqliteVersion: "3.51.3", eventCount: 2 }),
+    };
+    const app = buildApp(config, { eventReader });
+    apps.push(app);
+    const cookie = await authenticate(app, config);
+
+    const requestDetail = await app.inject({
+      method: "GET",
+      url: "/api/dashboard/requests/request-1",
+      headers: { cookie },
+    });
+    const sessionDetail = await app.inject({
+      method: "GET",
+      url: "/api/dashboard/sessions/session-1",
+      headers: { cookie },
+    });
+    const diagnostics = await app.inject({
+      method: "GET",
+      url: "/api/dashboard/diagnostics",
+      headers: { cookie },
+    });
+    const forbiddenDelete = await app.inject({
+      method: "DELETE",
+      url: "/api/dashboard/requests/request-1",
+      headers: { cookie, origin: "https://malicious.example" },
+    });
+    const deletion = await app.inject({
+      method: "DELETE",
+      url: "/api/dashboard/requests/request-1",
+      headers: { cookie, origin: "http://127.0.0.1:3210" },
+    });
+
+    const requestEvidence = requestDetail.json();
+    expect(requestEvidence).toMatchObject({
+      id: "request-1",
+      replay: { available: false },
+    });
+    expect(requestEvidence.events).toEqual(
+      expect.arrayContaining([expect.objectContaining({ type: "request.measured" })]),
+    );
+    expect(sessionDetail.json()).toMatchObject({
+      id: "session-1",
+      requestsList: [{ id: "request-1" }],
+    });
+    expect(diagnostics.json()).toMatchObject({
+      storage: {
+        rawContentRetained: false,
+        structuralRetentionDays: 30,
+        eventCount: 2,
+      },
+      capabilities: { retries: false },
+    });
+    expect(forbiddenDelete.statusCode).toBe(403);
+    expect(deletion.json()).toEqual({ deletedEvents: 2 });
+    expect(deletedRequest).toBe("request-1");
+  });
 });
+
+async function authenticate(
+  app: ReturnType<typeof buildApp>,
+  config: RuntimeConfig,
+): Promise<string> {
+  const bootstrap = await createDashboardBootstrap(config.storage.path);
+  const exchange = await app.inject({
+    method: "POST",
+    url: "/api/admin/session",
+    headers: {
+      "content-type": "application/json",
+      origin: "http://127.0.0.1:3210",
+    },
+    payload: JSON.stringify({ code: bootstrap.code }),
+  });
+  return exchange.headers["set-cookie"]?.split(";")[0] ?? "";
+}
+
+function createEvent(
+  type: ObservationEvent["type"],
+  data: ObservationEvent["data"],
+): ObservationEvent {
+  return {
+    schemaVersion: 1,
+    eventId: crypto.randomUUID(),
+    type,
+    timestamp: "2026-06-30T10:00:00.000Z",
+    requestId: "request-1",
+    attemptId: "attempt-1",
+    session: {
+      id: "session-1",
+      association: "explicit",
+      method: "x-token-shuffle-session-id",
+    },
+    protocol: "openai-chat-completions",
+    provider: "openai-compatible",
+    model: "synthetic-model",
+    data,
+    retentionClass: "structural",
+  };
+}
 
 function createConfig(storagePath: string): RuntimeConfig {
   return {

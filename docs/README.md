@@ -12,10 +12,8 @@ project. This page is the documentation index.
    - [Pi Coding Agent](getting-started/agents/pi.md)
 4. [Use the web UI](getting-started/web-ui.md)
 
-The user guides describe the intended v0.1–v0.2 experience. The repository is
-currently in v0.2 development on top of the stable v0.1.0 proxy. The first
-dashboard overview slice is implemented; request detail, replay, live updates,
-and management controls remain in progress.
+The user guides describe the stable v0.2 proxy and evidence dashboard. Planned
+transform behavior remains clearly separated under the roadmap.
 
 ## Product and delivery
 

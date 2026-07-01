@@ -1,8 +1,8 @@
 # Local dashboard
 
-The v0.2 dashboard is a local React application served by the proxy. Its first
-vertical slice shows privacy-safe request and session evidence from the SQLite
-event ledger.
+The v0.2 dashboard is a local React application served by the proxy. It provides
+privacy-safe overview and detail views, structural replay, live updates,
+diagnostics, and evidence deletion from the SQLite event ledger.
 
 Development:
 

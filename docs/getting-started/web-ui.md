@@ -1,8 +1,6 @@
 # Use the web UI
 
-> **Availability:** The first v0.2 development slice is implemented. It includes
-> secure administrative sign-in and the read-only overview. Features described
-> below that are not part of that overview remain planned.
+> **Availability:** Included in v0.2.0.
 
 The dashboard is served by the local proxy and is accessible only from the same
 workstation by default.
@@ -45,49 +43,49 @@ Values from different categories are not combined into one savings number.
 Cost estimates, cache-write reporting, inference avoided through response reuse,
 and proxy-versus-upstream latency attribution remain planned.
 
-## Session and request details (planned)
+## Session and request details
 
-Open a session to see its sequence of requests. A request detail explains:
+Select a session to see its sequence of requests. Select a request to inspect:
 
 - selected provider and model;
-- baseline structure and token sources;
-- ordered policy decisions;
-- forwarded structure;
-- optimization work and token cost;
-- retries, failover, and cache decisions;
-- streamed usage reported by the provider;
-- warnings or incomplete measurements.
+- measured request structure and token provenance;
+- ordered lifecycle and shadow-policy events;
+- baseline, forwarded, and optimization token counts;
+- provider cache reads as a separate category;
+- status and latency.
 
-When replay capture is enabled, the detail page provides a redacted before/after
-view. Without capture, it shows structural metadata rather than reconstructing
-content that was intentionally not retained.
+Raw capture is not enabled in v0.2. Structural replay therefore shows
+measurements and lifecycle decisions without reconstructing content that was
+intentionally not retained.
 
-## Privacy controls (planned)
+New persisted events update the open dashboard through an authenticated SSE
+connection. The browser then refreshes affected event-backed queries.
+
+## Privacy controls
 
 Raw prompt and response retention is off by default. The UI must make the
 following visible:
 
-- whether capture is currently enabled;
-- when it expires;
-- which sessions contain raw content;
-- storage usage and retention policy;
-- an immediate delete action;
-- export contents before an export is created.
+- whether raw content retention is enabled;
+- structural and redacted-error retention periods;
+- event count and persistence health;
+- immediate deletion for one request, one session, or all history.
 
 The dashboard never displays provider credentials or the local proxy access
-token.
+token. Changing retention periods requires editing local configuration and
+restarting Token Shuffle; the dashboard deliberately does not rewrite
+configuration.
 
-## Diagnostics (planned)
+## Diagnostics
 
 Diagnostics show:
 
 - proxy and database health;
-- effective non-secret configuration and its source;
+- effective non-secret listener, mode, and retention configuration;
 - active port and mode;
 - supported ingress and provider capabilities;
-- recent redacted errors;
-- version and update status;
-- paths to logs, configuration, and data.
+- SQLite and event counts;
+- version and retry behavior.
 
-Copyable diagnostic bundles exclude raw content and secrets unless the user
-explicitly reviews and includes additional data.
+Diagnostic bundle export, update status, and log-path discovery remain later
+work and are not represented as v0.2 capabilities.

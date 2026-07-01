@@ -5,6 +5,7 @@ export const EVENT_SCHEMA_VERSION = 1;
 export type ObservationEventType =
   | "request.received"
   | "request.measured"
+  | "policy.shadow_evaluated"
   | "route.selected"
   | "attempt.started"
   | "attempt.first_byte"
@@ -37,6 +38,28 @@ export interface ObservationEvent {
 export interface EventSink {
   append(event: ObservationEvent): Promise<void>;
   close?(): Promise<void>;
+}
+
+export type EventListener = (event: ObservationEvent) => void;
+
+export class ObservableEventSink implements EventSink {
+  readonly #listeners = new Set<EventListener>();
+
+  public constructor(private readonly target: EventSink) {}
+
+  public async append(event: ObservationEvent): Promise<void> {
+    await this.target.append(event);
+    for (const listener of this.#listeners) listener(event);
+  }
+
+  public subscribe(listener: EventListener): () => void {
+    this.#listeners.add(listener);
+    return () => this.#listeners.delete(listener);
+  }
+
+  public async close(): Promise<void> {
+    await this.target.close?.();
+  }
 }
 
 export class NoopEventSink implements EventSink {
