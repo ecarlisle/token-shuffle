@@ -25,6 +25,7 @@ export class OpenAiCompatibleProvider {
       readonly connectTimeoutMs: number;
       readonly responseHeaderTimeoutMs: number;
       readonly responseBodyTimeoutMs: number;
+      readonly developerRole: "preserve" | "system";
     },
   ) {
     this.#dispatcher = new Agent({
@@ -36,7 +37,15 @@ export class OpenAiCompatibleProvider {
     rawBody: Buffer,
     signal: AbortSignal,
   ): Promise<UpstreamResponse> {
-    return this.#request("chat/completions", signal, rawBody);
+    return this.#request(
+      "chat/completions",
+      signal,
+      this.prepareChatCompletions(rawBody),
+    );
+  }
+
+  public prepareChatCompletions(rawBody: Buffer): Buffer {
+    return normalizeDeveloperRole(rawBody, this.options.developerRole);
   }
 
   public async models(signal: AbortSignal): Promise<UpstreamResponse> {
@@ -92,6 +101,41 @@ export class OpenAiCompatibleProvider {
   public async close(): Promise<void> {
     await this.#dispatcher.close();
   }
+}
+
+function normalizeDeveloperRole(
+  rawBody: Buffer,
+  policy: "preserve" | "system",
+): Buffer {
+  if (policy === "preserve") return rawBody;
+
+  const request = JSON.parse(rawBody.toString("utf8")) as unknown;
+  if (
+    typeof request !== "object" ||
+    request === null ||
+    !("messages" in request) ||
+    !Array.isArray(request.messages)
+  ) {
+    return rawBody;
+  }
+
+  let changed = false;
+  const messages = request.messages.map((message) => {
+    if (
+      typeof message !== "object" ||
+      message === null ||
+      !("role" in message) ||
+      message.role !== "developer"
+    ) {
+      return message;
+    }
+    changed = true;
+    return { ...message, role: "system" };
+  });
+
+  return changed
+    ? Buffer.from(JSON.stringify({ ...request, messages }))
+    : rawBody;
 }
 
 function ensureTrailingSlash(url: URL): URL {

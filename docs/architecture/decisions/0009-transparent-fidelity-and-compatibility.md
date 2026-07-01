@@ -97,6 +97,11 @@ family and is not itself a support claim.
 Future translated-protocol adapters guarantee documented semantic mappings, not
 the transparent byte-level contract.
 
+Explicit same-protocol provider capability mappings are governed by
+[ADR 0013](0013-provider-capability-normalization.md). When configured, they
+normalize only at provider dispatch and are documented exceptions to
+byte-preserving egress; inbound observation still uses the original request.
+
 ## Consequences
 
 - Observe-mode forwarding must retain raw body bytes alongside a parsed view.

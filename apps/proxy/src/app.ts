@@ -73,6 +73,7 @@ export function buildApp(
     connectTimeoutMs: config.limits.upstreamConnectTimeoutMs,
     responseHeaderTimeoutMs: config.limits.responseHeaderTimeoutMs,
     responseBodyTimeoutMs: config.limits.responseBodyTimeoutMs,
+    developerRole: config.upstream.compatibility?.developerRole ?? "preserve",
   });
   const resilientEventSink = new ResilientEventSink(
     options.eventSink ?? new NoopEventSink(),

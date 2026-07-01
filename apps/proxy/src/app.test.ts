@@ -250,6 +250,80 @@ describe("buffered Chat Completions forwarding", () => {
     expect(JSON.stringify(eventSink.events)).not.toContain(rawBody);
   });
 
+  it("observes the inbound developer role but normalizes it only for dispatch", async () => {
+    const rawBody = JSON.stringify({
+      model: "deepseek-chat",
+      messages: [
+        { role: "system", content: "existing system instruction" },
+        { role: "developer", content: "developer instruction", name: "opencode" },
+        { role: "user", content: "question" },
+        { role: "assistant", content: "answer" },
+        { role: "tool", content: "result", tool_call_id: "call-1" },
+      ],
+      unknown: { kept: true },
+    });
+    let receivedBody = Buffer.alloc(0);
+    const baseUrl = await startProvider((request, response) => {
+      const chunks: Buffer[] = [];
+      request.on("data", (chunk: Buffer) => chunks.push(chunk));
+      request.on("end", () => {
+        receivedBody = Buffer.concat(chunks);
+        response.end('{"choices":[]}');
+      });
+    });
+    const eventSink = new RecordingEventSink();
+    const config = createConfig(baseUrl);
+    const app = buildApp(
+      {
+        ...config,
+        upstream: {
+          ...config.upstream,
+          compatibility: { developerRole: "system" },
+        },
+      },
+      { eventSink },
+    );
+    apps.push(app);
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/chat/completions",
+      headers: authorizedHeaders(),
+      payload: rawBody,
+    });
+
+    expect(response.statusCode).toBe(200);
+    const forwarded = JSON.parse(receivedBody.toString("utf8")) as {
+      messages: { role: string; content: string; name?: string }[];
+      unknown: { kept: boolean };
+    };
+    expect(forwarded.messages.map((message) => message.role)).toEqual([
+      "system",
+      "system",
+      "user",
+      "assistant",
+      "tool",
+    ]);
+    expect(forwarded.messages[1]).toEqual({
+      role: "system",
+      content: "developer instruction",
+      name: "opencode",
+    });
+    expect(forwarded.unknown).toEqual({ kept: true });
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(eventSink.events[0]).toMatchObject({
+      type: "request.received",
+      data: { requestBytes: Buffer.byteLength(rawBody) },
+    });
+    expect(eventSink.events.find((event) => event.type === "request.measured")).toMatchObject({
+      data: {
+        developerMessageCount: 1,
+        messageCount: 5,
+        forwardedInputTokens: Math.ceil(receivedBody.byteLength / 4),
+      },
+    });
+  });
+
   it("applies explicitly enabled deterministic policies and records final-boundary impact", async () => {
     let receivedBody = Buffer.alloc(0);
     const baseUrl = await startProvider((request, response) => {

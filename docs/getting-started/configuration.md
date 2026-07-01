@@ -40,6 +40,9 @@ active default. In a repository checkout, run
     "baseUrl": "https://api.example-provider.com/v1",
     "apiKey": {
       "fromEnv": "UPSTREAM_API_KEY"
+    },
+    "compatibility": {
+      "developerRole": "preserve"
     }
   },
   "storage": {
@@ -69,8 +72,25 @@ active default. In a repository checkout, run
 ```
 
 Replace `baseUrl` with the provider's official OpenAI-compatible endpoint. The
-The current proxy accepts one upstream and forwards the model ID supplied by the agent.
+current proxy accepts one upstream and forwards the model ID supplied by the agent.
 Multi-provider routing arrives later in the roadmap.
+
+`upstream.compatibility.developerRole` defaults to `preserve`. Set it to
+`system` when the selected upstream/model rejects OpenAI `developer` messages,
+including DeepSeek-compatible endpoints:
+
+```json
+"compatibility": {
+  "developerRole": "system"
+}
+```
+
+Token Shuffle still measures the original inbound request. The provider adapter
+changes only each outbound message role from `developer` to `system`; message
+content, names, other message fields, supported roles, and unrelated request
+fields are retained. This configured mapping intentionally gives up byte-level
+request fidelity for compatible dispatch and is independent of optimization
+mode.
 
 ## Configuration rules
 

@@ -15,8 +15,9 @@ Proposed, Accepted, Superseded, or Rejected.
 - [0010 — Execution and retry semantics](0010-execution-and-retry-semantics.md)
 - [0011 — Event and session identity](0011-event-and-session-identity.md)
 - [0012 — Resource and timeout limits](0012-resource-and-timeout-limits.md)
+- [0013 — Explicit provider capability normalization](0013-provider-capability-normalization.md)
 
-ADRs 0001–0012 are **Accepted** and form the reviewed foundation for
+ADRs 0001–0013 are **Accepted** and form the reviewed foundation for
 implementation. Future changes may supersede an ADR but do not silently rewrite
 its history.
 

@@ -51,6 +51,7 @@ describe("parseConfig", () => {
     expect(config.auth.accessToken).toBe("local-secret");
     expect(config.upstream.apiKey).toBe("provider-secret");
     expect(config.upstream.baseUrl.href).toBe("https://api.example.test/v1/");
+    expect(config.upstream.compatibility).toEqual({ developerRole: "preserve" });
     expect(config.limits.requestBodyBytes).toBe(16 * 1024 * 1024);
     expect(config.storage.retainRawContent).toBe(false);
     expect(config.policies).toEqual({

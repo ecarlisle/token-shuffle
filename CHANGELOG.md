@@ -6,6 +6,9 @@ This project follows Keep a Changelog conventions while it is pre-release.
 
 ### Fixed
 
+- DeepSeek-compatible upstreams can explicitly map unsupported OpenAI
+  `developer` messages to `system` at the provider dispatch boundary while
+  retaining the original request for observation.
 - Clean workspace checkouts now build `@token-shuffle/core` before proxy
   typechecking and resolve its explicit JavaScript and declaration entry points.
 - CI now verifies the full frozen-install, check, build, and test sequence.

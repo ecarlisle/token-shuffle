@@ -29,6 +29,17 @@ export const TokenShuffleConfigSchema = Type.Object(
         type: Type.Literal("openai-compatible"),
         baseUrl: Type.String({ minLength: 1 }),
         apiKey: EnvironmentReferenceSchema,
+        compatibility: Type.Optional(
+          Type.Object(
+            {
+              developerRole: Type.Union([
+                Type.Literal("preserve"),
+                Type.Literal("system"),
+              ]),
+            },
+            { additionalProperties: false },
+          ),
+        ),
       },
       { additionalProperties: false },
     ),
@@ -118,6 +129,9 @@ export interface RuntimeConfig {
     readonly type: "openai-compatible";
     readonly baseUrl: URL;
     readonly apiKey: string;
+    readonly compatibility?: {
+      readonly developerRole: "preserve" | "system";
+    };
   };
   readonly storage: {
     readonly retainRawContent: false;

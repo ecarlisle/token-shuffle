@@ -102,6 +102,9 @@ export function parseConfig(
       type: "openai-compatible",
       baseUrl: validateUpstream(config.upstream.baseUrl),
       apiKey: resolveSecret(config.upstream.apiKey, environment),
+      compatibility: {
+        developerRole: config.upstream.compatibility?.developerRole ?? "preserve",
+      },
     },
     storage: {
       retainRawContent: false,

@@ -42,6 +42,7 @@ test metadata rather than guessed in advance. Follow the
 | Zero automatic retries | Transport-failure integration test | Provisional |
 | SSE bytes, event boundaries, backpressure, and cancellation | Fake-provider integration tests | Provisional |
 | Observe-mode request byte fidelity after v0.3 | Fake-provider integration test | Provisional |
+| Configured `developer` → `system` provider normalization | Fake-provider integration test | Provisional |
 | Deterministic optimize-mode context policies | Replay and fake-provider fixtures | Provisional |
 | Deterministic old-turn compaction | Replay and fake-provider fixtures | Provisional |
 
@@ -49,6 +50,16 @@ The verified live-client combinations were established in observe mode. v0.3
 and v0.4 optimize-mode policies are provisional until separate live agent
 sessions exercise enabled policies; they do not inherit the observe-mode
 verification label.
+
+### DeepSeek developer-role compatibility
+
+Some DeepSeek-compatible providers reject the OpenAI `developer` role. Configure
+`upstream.compatibility.developerRole` as `system` to map those roles at the
+provider dispatch boundary. The original request remains the source for
+structural observation; the outbound payload retains supported roles and all
+other message/request fields. This behavior is fixture-tested but remains
+provisional until the affected OpenCode/DeepSeek route passes a new live smoke
+test. The default `preserve` setting retains byte-level forwarding.
 
 ## Feature matrix
 

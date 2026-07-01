@@ -83,9 +83,14 @@ export class ExecutionCoordinator {
           raw: Buffer.from(JSON.stringify(preparation.value)),
         }
       : body;
+    const providerBody = this.provider.prepareChatCompletions(preparedBody.raw);
+    const forwardedBody: RawJsonBody =
+      providerBody === preparedBody.raw
+        ? preparedBody
+        : { parsed: preparedBody.parsed, raw: providerBody };
     const observation = new RequestObservation(
       body,
-      preparedBody,
+      forwardedBody,
       preparation.decisions,
       suppliedSessionId,
       this.eventSink,
@@ -107,7 +112,7 @@ export class ExecutionCoordinator {
     signal.addEventListener("abort", markCancelled, { once: true });
 
     try {
-      const response = await this.provider.chatCompletions(preparedBody.raw, signal);
+      const response = await this.provider.chatCompletions(providerBody, signal);
       let released = false;
       let finished = false;
       return {
@@ -526,6 +531,7 @@ function measureStructure(
   let toolOutputBytes = 0;
   let stablePrefixBytes = 0;
   let repeatedMessageBytes = 0;
+  let developerMessageCount = 0;
   let stablePrefixOpen = true;
   const seenMessages = new Set<string>();
 
@@ -540,6 +546,14 @@ function measureStructure(
       message !== null &&
       "role" in message &&
       (message.role === "system" || message.role === "developer");
+    if (
+      typeof message === "object" &&
+      message !== null &&
+      "role" in message &&
+      message.role === "developer"
+    ) {
+      developerMessageCount += 1;
+    }
     if (stablePrefixOpen && isStablePrefixRole) {
       stablePrefixBytes += bytes;
     } else {
@@ -557,6 +571,7 @@ function measureStructure(
 
   return {
     messageCount: messages.length,
+    developerMessageCount,
     toolDefinitionCount: tools.length,
     toolDefinitionTokens: estimateTokensAllowZero(toolDefinitionBytes),
     toolOutputTokens: estimateTokensAllowZero(toolOutputBytes),

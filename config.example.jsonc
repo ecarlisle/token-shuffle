@@ -16,6 +16,11 @@
     "baseUrl": "https://api.example-provider.com/v1",
     "apiKey": {
       "fromEnv": "UPSTREAM_API_KEY"
+    },
+    "compatibility": {
+      // Set to "system" for DeepSeek and other providers that reject
+      // OpenAI developer-role messages. The default is "preserve".
+      "developerRole": "preserve"
     }
   },
   "storage": {
