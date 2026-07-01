@@ -43,6 +43,7 @@ separated by roadmap milestone.
 - [Engineering Reviews](engineering-reviews/README.md)
 - [Engineering Review Packets](erp/README.md)
 - [Change workflow](contributing/workflow.md)
+- [Documentation quality standards](contributing/documentation-standards.md)
 - [Testing strategy](testing/strategy.md)
 - [v0.1 release validation](testing/v0.1-release-validation.md)
 

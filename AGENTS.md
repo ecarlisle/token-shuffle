@@ -343,3 +343,97 @@ A change is done when:
 - required checks pass;
 - the working tree contains no accidental artifacts;
 - the commit message describes the outcome.
+
+## Engineering Review Process
+
+Token Shuffle uses Engineering Reviews to continuously improve the project.
+
+Engineering Reviews are considered first-class engineering artifacts.
+
+### Lifecycle
+
+Vision
+
+↓
+
+Architecture Decision Records (ADRs)
+
+↓
+
+Implementation
+
+↓
+
+Release Validation
+
+↓
+
+Engineering Review
+
+↓
+
+Engineering Review Packets (ERPs)
+
+↓
+
+Implementation
+
+↓
+
+Next Release
+
+### Engineering Review Packets
+
+ERPs are actionable work items created from Engineering Reviews.
+
+Unlike GitHub issues, ERPs preserve architectural context, engineering rationale, and acceptance criteria.
+
+When working on the repository:
+
+- Review applicable ERPs before beginning implementation.
+- If an ERP affects your work, incorporate it whenever practical.
+- When completing an ERP:
+  - update its status
+  - document implementation notes
+  - reference the commit
+  - reference the release
+  - update related documentation
+- If implementation differs from an ERP, explain why.
+- Do not silently discard ERP recommendations.
+
+### Documentation Truthfulness
+
+Documentation must distinguish between:
+
+- implemented
+- validated
+- experimental
+- planned
+- deferred
+- superseded
+
+Never present planned capabilities as implemented.
+
+Follow the
+[documentation quality standards](docs/contributing/documentation-standards.md)
+for source-of-truth ownership, status language, commands, examples, links, and
+evidence.
+
+### Review Philosophy
+
+Prefer:
+
+- clarity over cleverness
+- explicit behavior over hidden behavior
+- evidence over claims
+- incremental improvement over large rewrites
+
+Documentation is considered a first-class deliverable.
+
+### Engineering Process
+
+See:
+
+- [Engineering Reviews](docs/engineering-reviews/README.md)
+- [Engineering Review charter](docs/engineering-reviews/REVIEW_CHARTER.md)
+- [Engineering Review Packets](docs/erp/README.md)

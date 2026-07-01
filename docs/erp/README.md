@@ -36,7 +36,7 @@ Each ERP should describe:
 | ERP-0003 | Architecture Happy Paths | P1 | Completed |
 | ERP-0004 | Documentation Navigation | P1 | Completed |
 | ERP-0005 | Architecture Consistency Audit | P1 | Proposed |
-| ERP-0006 | Documentation Quality Standards | P1 | Proposed |
+| ERP-0006 | Documentation Quality Standards | P1 | Completed |
 | ERP-0007 | CLI Developer Experience | P0 | Completed |
 
 ## Related

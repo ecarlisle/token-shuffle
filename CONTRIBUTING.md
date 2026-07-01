@@ -22,3 +22,8 @@ pnpm check
 
 The detailed workflow and definition of done live in
 [docs/contributing/workflow.md](docs/contributing/workflow.md).
+
+Documentation changes also follow the
+[documentation quality standards](docs/contributing/documentation-standards.md).
+Before starting, review any applicable
+[Engineering Review Packets](docs/erp/README.md).

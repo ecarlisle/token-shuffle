@@ -60,5 +60,6 @@ in the commit body or review notes.
 ## See also
 
 - [Contributor guide](../../CONTRIBUTING.md)
+- [Documentation standards](documentation-standards.md)
 - [Testing strategy](../testing/strategy.md)
 - [Engineering Review Packets](../erp/README.md)
