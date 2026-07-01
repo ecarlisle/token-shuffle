@@ -1,4 +1,5 @@
 import { mkdtemp, rm } from "node:fs/promises";
+import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -98,5 +99,70 @@ describe("SqliteEventStore", () => {
     expect(await store.deleteRequest("request-delete")).toBe(1);
     expect(await store.deleteSession("session-delete")).toBe(1);
     expect(await store.list()).toEqual([]);
+  });
+
+  it("opens an existing v0.4 schema without destroying its events", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "token-shuffle-events-"));
+    directories.push(directory);
+    const path = join(directory, "events.sqlite");
+    const database = new DatabaseSync(path);
+    database.exec(`
+      CREATE TABLE observation_events (
+        event_id TEXT PRIMARY KEY,
+        request_id TEXT NOT NULL,
+        session_id TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        occurred_at TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        event_json TEXT NOT NULL
+      );
+      CREATE INDEX events_request_idx ON observation_events(request_id);
+      CREATE INDEX events_session_idx ON observation_events(session_id);
+      CREATE INDEX events_expiry_idx ON observation_events(expires_at);
+      PRAGMA user_version = 1;
+    `);
+    const existing = event({ eventId: "existing" });
+    database
+      .prepare(`
+        INSERT INTO observation_events
+          (event_id, request_id, session_id, event_type, occurred_at, expires_at, event_json)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `)
+      .run(
+        existing.eventId,
+        existing.requestId,
+        existing.session.id,
+        existing.type,
+        existing.timestamp,
+        new Date(Date.now() + 86_400_000).toISOString(),
+        JSON.stringify(existing),
+      );
+    database.close();
+
+    const store = await SqliteEventStore.open({
+      path,
+      structuralRetentionDays: 30,
+      errorRetentionDays: 14,
+    });
+    stores.push(store);
+
+    expect(await store.list()).toEqual([existing]);
+  });
+
+  it("rejects a database created by a newer application", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "token-shuffle-events-"));
+    directories.push(directory);
+    const path = join(directory, "events.sqlite");
+    const database = new DatabaseSync(path);
+    database.exec("PRAGMA user_version = 99");
+    database.close();
+
+    await expect(
+      SqliteEventStore.open({
+        path,
+        structuralRetentionDays: 30,
+        errorRetentionDays: 14,
+      }),
+    ).rejects.toThrow("newer than this application");
   });
 });

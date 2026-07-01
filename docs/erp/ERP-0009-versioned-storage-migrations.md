@@ -1,6 +1,6 @@
 # ERP-0009: Establish Versioned Storage Migrations
 
-Status: Accepted
+Status: Completed
 Priority: P0
 Category: Storage, Architecture, Release Engineering
 Origin Review: ERP-0005 architecture consistency audit
@@ -30,5 +30,18 @@ transactionally in the SQLite worker and test a real v0.4-to-v0.5 upgrade.
 
 ## Resolution
 
-Accepted as a prerequisite for v0.5 persistent artifacts and FTS5.
-Implementation pending.
+Completed for v0.5. The event store now loads ordered, checked-in SQL and
+applies each pending migration in its worker inside `BEGIN IMMEDIATE` /
+`COMMIT`, rolling back a failed migration. Startup rejects a schema newer than
+the runtime. Tests cover a fresh database, preservation of an existing v0.4
+schema, and a newer-schema failure.
+
+Files changed:
+
+- `apps/proxy/package.json`
+- `apps/proxy/scripts/copy-storage-migrations.mjs`
+- `apps/proxy/src/storage/event-store.ts`
+- `apps/proxy/src/storage/event-store.test.ts`
+- `apps/proxy/src/storage/migrations/0001-observation-events.sql`
+- `docs/erp/ERP-0009-versioned-storage-migrations.md`
+- `docs/erp/README.md`

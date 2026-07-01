@@ -1,4 +1,5 @@
 import { Worker } from "node:worker_threads";
+import { readFile } from "node:fs/promises";
 
 import type { EventSink, ObservationEvent } from "../observation/events.js";
 
@@ -22,10 +23,11 @@ export class SqliteEventStore implements EventSink {
     path: string,
     structuralRetentionDays: number,
     errorRetentionDays: number,
+    migrations: readonly string[],
   ) {
     this.#worker = new Worker(WORKER_SOURCE, {
       eval: true,
-      workerData: { path, structuralRetentionDays, errorRetentionDays },
+      workerData: { path, structuralRetentionDays, errorRetentionDays, migrations },
     });
     this.#worker.on("message", (reply: WorkerReply) => this.#receive(reply));
     this.#worker.on("error", (error) => this.#rejectAll(error));
@@ -41,10 +43,12 @@ export class SqliteEventStore implements EventSink {
     readonly structuralRetentionDays: number;
     readonly errorRetentionDays: number;
   }): Promise<SqliteEventStore> {
+    const migrations = await loadMigrations();
     const store = new SqliteEventStore(
       options.path,
       options.structuralRetentionDays,
       options.errorRetentionDays,
+      migrations,
     );
     await store.#request("initialize");
     return store;
@@ -121,6 +125,15 @@ export class SqliteEventStore implements EventSink {
   }
 }
 
+async function loadMigrations(): Promise<readonly string[]> {
+  return [
+    await readFile(
+      new URL("./migrations/0001-observation-events.sql", import.meta.url),
+      "utf8",
+    ),
+  ];
+}
+
 const WORKER_SOURCE = `
 const { mkdirSync } = require("node:fs");
 const { dirname } = require("node:path");
@@ -145,22 +158,21 @@ function initialize() {
     database.exec("PRAGMA journal_mode = WAL; PRAGMA wal_autocheckpoint = 1000;");
   }
   const schemaVersion = Number(database.prepare("PRAGMA user_version").get().user_version);
-  if (schemaVersion > 1) throw new Error("Event database schema is newer than this application.");
-  database.exec(\`
-    CREATE TABLE IF NOT EXISTS observation_events (
-      event_id TEXT PRIMARY KEY,
-      request_id TEXT NOT NULL,
-      session_id TEXT NOT NULL,
-      event_type TEXT NOT NULL,
-      occurred_at TEXT NOT NULL,
-      expires_at TEXT NOT NULL,
-      event_json TEXT NOT NULL
-    );
-    CREATE INDEX IF NOT EXISTS events_request_idx ON observation_events(request_id);
-    CREATE INDEX IF NOT EXISTS events_session_idx ON observation_events(session_id);
-    CREATE INDEX IF NOT EXISTS events_expiry_idx ON observation_events(expires_at);
-    PRAGMA user_version = 1;
-  \`);
+  const latestSchemaVersion = workerData.migrations.length;
+  if (schemaVersion > latestSchemaVersion) {
+    throw new Error("Event database schema is newer than this application.");
+  }
+  for (let index = schemaVersion; index < latestSchemaVersion; index += 1) {
+    database.exec("BEGIN IMMEDIATE");
+    try {
+      database.exec(workerData.migrations[index]);
+      database.exec("PRAGMA user_version = " + (index + 1));
+      database.exec("COMMIT");
+    } catch (error) {
+      database.exec("ROLLBACK");
+      throw error;
+    }
+  }
   const integrity = database.prepare("PRAGMA quick_check").get().quick_check;
   if (integrity !== "ok") throw new Error("Event database integrity check failed.");
 }

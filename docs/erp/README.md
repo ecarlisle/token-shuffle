@@ -39,7 +39,7 @@ Each ERP should describe:
 | ERP-0006 | Documentation Quality Standards | P1 | Completed |
 | ERP-0007 | CLI Developer Experience | P0 | Completed |
 | ERP-0008 | Keyed Content Fingerprints | P0 | Accepted |
-| ERP-0009 | Versioned Storage Migrations | P0 | Accepted |
+| ERP-0009 | Versioned Storage Migrations | P0 | Completed |
 
 ## Related
 
