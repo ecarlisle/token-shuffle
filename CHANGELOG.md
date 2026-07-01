@@ -4,6 +4,12 @@ This project follows Keep a Changelog conventions while it is pre-release.
 
 ## Unreleased
 
+### Fixed
+
+- Clean workspace checkouts now build `@token-shuffle/core` before proxy
+  typechecking and resolve its explicit JavaScript and declaration entry points.
+- CI now verifies the full frozen-install, check, build, and test sequence.
+
 ## 0.4.0 - 2026-07-01
 
 ### Added
