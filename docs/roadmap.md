@@ -3,6 +3,9 @@
 Versions are evidence gates, not date promises. A release advances only when its
 exit criteria are met.
 
+The roadmap describes accepted delivery intent, not present-tense support. See
+[Capability status](capabilities.md) for implemented and validated behavior.
+
 ## v0.0 — Foundation (completed)
 
 - Agree on product vocabulary, architecture, privacy, and test strategy.

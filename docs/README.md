@@ -20,6 +20,7 @@ separated by roadmap milestone.
 
 - [Vision](vision.md)
 - [Token economics](product/token-economics.md)
+- [Capability status](capabilities.md)
 - [Compatibility](compatibility.md)
 - [Roadmap](roadmap.md)
 - [Version history](version-history.md)

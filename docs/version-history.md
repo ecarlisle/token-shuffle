@@ -7,6 +7,8 @@ records the purpose and meaningful outcome of each version. The
 
 Versions are listed newest first. Update the current entry as its scope becomes
 real, then mark it released with a date before opening the next version entry.
+For present-tense support status, use the
+[capability matrix](capabilities.md); this file remains a historical record.
 
 ## v0.4 — Conversation compaction
 

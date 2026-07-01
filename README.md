@@ -36,7 +36,8 @@ workstation packaging, and a trustworthy v1.0 distribution. See the
 ## Start here
 
 - **Try Token Shuffle:** [Getting started](docs/getting-started/README.md)
-- **See what is supported:** [Compatibility](docs/compatibility.md)
+- **See what exists today:** [Capability status](docs/capabilities.md)
+- **See tested client/provider combinations:** [Compatibility](docs/compatibility.md)
 - **Understand the system:** [Architecture](docs/architecture/overview.md)
 - **Understand the decisions:** [ADR index](docs/architecture/decisions/README.md)
 - **See current and future milestones:** [Roadmap](docs/roadmap.md)
