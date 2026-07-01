@@ -14,7 +14,9 @@ directory:
 | Linux | `${XDG_CONFIG_HOME:-~/.config}/token-shuffle/config.jsonc` |
 | Windows | `%APPDATA%\Token Shuffle\config.jsonc` |
 
-Use `token-shuffle config path` to show the active default. Override it with
+Packaged or linked installations can use `token-shuffle config path` to show the
+active default. In a repository checkout, run
+`pnpm proxy:cli config path`. Override either form with
 `--config /path/to/config.jsonc` or
 `TOKEN_SHUFFLE_CONFIG=/path/to/config.jsonc`.
 
@@ -191,6 +193,12 @@ doctor report runtime health without printing resolved credentials.
 token-shuffle config validate
 ```
 
+From a repository checkout:
+
+```sh
+pnpm proxy:cli config validate
+```
+
 Validation checks syntax, unknown keys, environment-variable presence, loopback
 binding, upstream URL policy, and incompatible options. It never prints resolved
 secret values. `doctor` checks storage access and runtime connectivity.
@@ -202,6 +210,12 @@ For runtime connectivity and storage checks:
 
 ```sh
 token-shuffle doctor
+```
+
+From a repository checkout:
+
+```sh
+pnpm proxy:doctor
 ```
 
 ## Provider examples

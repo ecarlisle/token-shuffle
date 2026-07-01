@@ -43,8 +43,18 @@ pnpm check
 
 To run the proxy, create a configuration from
 [`config.example.jsonc`](config.example.jsonc), export its two referenced
-secrets, and follow the
-[getting-started instructions](docs/getting-started/README.md).
+secrets, then:
+
+```sh
+cp config.example.jsonc config.local.jsonc
+pnpm build
+pnpm proxy:start
+pnpm proxy:status
+```
+
+The `token-shuffle` binary name is available only from a packaged or explicitly
+linked installation; repository checkouts use the `pnpm proxy:*` scripts. See
+the [getting-started instructions](docs/getting-started/README.md).
 
 ## Repository map
 

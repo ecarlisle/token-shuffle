@@ -11,6 +11,12 @@
     "build": "pnpm --recursive build",
     "check": "pnpm typecheck && pnpm test",
     "dev": "pnpm --parallel --filter @token-shuffle/proxy --filter @token-shuffle/web dev",
+    "proxy:cli": "node apps/proxy/dist/cli.js --config ./config.local.jsonc",
+    "proxy:doctor": "node apps/proxy/dist/cli.js --config ./config.local.jsonc doctor",
+    "proxy:open": "node apps/proxy/dist/cli.js --config ./config.local.jsonc open",
+    "proxy:start": "node apps/proxy/dist/cli.js --config ./config.local.jsonc start",
+    "proxy:status": "node apps/proxy/dist/cli.js --config ./config.local.jsonc status",
+    "proxy:stop": "node apps/proxy/dist/cli.js --config ./config.local.jsonc stop",
     "test": "pnpm --recursive test",
     "typecheck": "pnpm --recursive typecheck"
   },

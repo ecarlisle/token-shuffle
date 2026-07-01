@@ -65,7 +65,11 @@ Create the application configuration described in
 
 ## 3. Start Token Shuffle
 
-The installed CLI is:
+### Packaged or linked CLI
+
+Token Shuffle is not currently published as a global npm package. The binary
+name below is available only from a packaged distribution or when the proxy
+package has been explicitly linked:
 
 ```sh
 token-shuffle start
@@ -94,23 +98,30 @@ The response reports readiness, mode, version, streaming support, and degraded
 persistence state without exposing credentials. Use `token-shuffle doctor` for
 SQLite and upstream diagnostics.
 
-### Repository development
+### Repository checkout
 
-Node 24.15+ is required. Copy and edit the example configuration, then run:
+Node 24.15+ is required. Copy and edit the example configuration, export the
+two referenced secrets, build, and use the repository scripts:
 
 ```sh
 cp config.example.jsonc config.local.jsonc
-export TOKEN_SHUFFLE_CONFIG="$PWD/config.local.jsonc"
 export TOKEN_SHUFFLE_ACCESS_TOKEN="generate-a-long-random-value"
 export UPSTREAM_API_KEY="your-provider-api-key"
 pnpm install
-pnpm dev
+pnpm build
+pnpm proxy:start
+pnpm proxy:status
+pnpm proxy:open
+pnpm proxy:doctor
 ```
 
 `config.local.jsonc` is ignored by this repository. The file contains no literal
 secrets, but it may contain workstation-specific provider details.
 
-Check status:
+For foreground proxy and dashboard development with watch mode, use `pnpm dev`.
+That is distinct from the lifecycle-managed CLI process above.
+
+Check status without the CLI:
 
 ```sh
 curl \
@@ -161,8 +172,16 @@ Confirm that:
 
 ## 6. Open the dashboard
 
+Packaged or linked CLI:
+
 ```sh
 token-shuffle open
+```
+
+Repository checkout:
+
+```sh
+pnpm proxy:open
 ```
 
 Or open `http://127.0.0.1:3210/` from the same workstation. See
@@ -170,8 +189,16 @@ Or open `http://127.0.0.1:3210/` from the same workstation. See
 
 ## Stop the application
 
+Packaged or linked CLI:
+
 ```sh
 token-shuffle stop
+```
+
+Repository checkout:
+
+```sh
+pnpm proxy:stop
 ```
 
 Stopping Token Shuffle while an agent request is active aborts that request; it
@@ -185,7 +212,7 @@ must not silently retry or duplicate the inference.
 | Unauthorized | Agent and proxy environments use the same local access token |
 | Provider rejected key | `UPSTREAM_API_KEY` belongs to the configured upstream |
 | Model not found | Agent model ID exactly matches an upstream model ID |
-| No dashboard | Run `token-shuffle open`; do not reuse an expired bootstrap URL |
+| No dashboard | Run `pnpm proxy:open` in a checkout or `token-shuffle open` from an installed/linked CLI; do not reuse an expired bootstrap URL |
 | No readable replay | Raw-content retention is off by default |
 
 Never work around a connection problem by binding Token Shuffle to all network

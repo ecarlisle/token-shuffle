@@ -11,6 +11,13 @@ Open it with:
 token-shuffle open
 ```
 
+That command assumes a packaged or explicitly linked CLI. From a repository
+checkout, run:
+
+```sh
+pnpm proxy:open
+```
+
 The command opens a browser with a two-minute, single-use bootstrap code in the
 URL fragment. Token Shuffle exchanges it for an eight-hour `HttpOnly`,
 `SameSite=Strict` administrative cookie and removes the fragment from browser
@@ -21,6 +28,12 @@ For environments where the CLI cannot launch a browser:
 
 ```sh
 token-shuffle open --no-browser
+```
+
+Repository checkout equivalent:
+
+```sh
+pnpm proxy:cli open --no-browser
 ```
 
 Copy the printed URL into a browser on the same workstation. Opening
