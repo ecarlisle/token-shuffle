@@ -1,6 +1,6 @@
 # Configure Token Shuffle
 
-> **Availability:** Implemented in v0.3.0. Multi-provider configuration is
+> **Availability:** Implemented in v0.4.0. Multi-provider configuration is
 > intentionally deferred.
 
 ## Configuration location
@@ -55,6 +55,12 @@ Use `token-shuffle config path` to show the active default. Override it with
     },
     "exactRedundancy": {
       "enabled": false
+    },
+    "conversationCompaction": {
+      "enabled": false,
+      "minimumMessages": 12,
+      "activeWindowMessages": 6,
+      "maximumSourceCharacters": 256000
     }
   }
 }
@@ -106,11 +112,26 @@ policy separately:
   lines with the retained line plus an exact count marker;
 - `exactRedundancy` removes only consecutive identical tool-result messages with
   the same `tool_call_id`.
+- `conversationCompaction` replaces eligible old non-system turns with
+  deterministic structured state. System/developer messages and the configured
+  active window remain verbatim.
 
 `maximumInputCharacters` is a safety bound, not a truncation target. Tool output
 larger than the limit bypasses the policy unchanged. `killSwitch: true` bypasses
 all active policies without requiring other configuration changes. Restart the
 proxy after changing policy configuration.
+
+Conversation compaction applies only after `minimumMessages` is reached, only
+when its source is within `maximumSourceCharacters`, and only when the complete
+prepared request is smaller. Each summary contains source indexes, a
+deterministic fingerprint, version, and uncertainty statement.
+
+When compaction applies, v0.4 keeps the omitted source in a bounded memory-only
+recovery snapshot for eight hours. It is available only through the separately
+authenticated administrative API, is never written to SQLite, and disappears
+on proxy restart. Deleting its request, session, or all history deletes the
+snapshot immediately. It is not available to the model. Persistent externalized
+artifacts and model-directed retrieval remain v0.5 scope.
 
 ### `server`
 

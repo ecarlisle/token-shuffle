@@ -34,6 +34,12 @@
     },
     "exactRedundancy": {
       "enabled": false
+    },
+    "conversationCompaction": {
+      "enabled": false,
+      "minimumMessages": 12,
+      "activeWindowMessages": 6,
+      "maximumSourceCharacters": 256000
     }
   }
 }

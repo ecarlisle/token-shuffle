@@ -9,6 +9,7 @@ import type { AddressInfo } from "node:net";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { buildApp } from "./app.js";
+import { createDashboardBootstrap } from "./auth/admin-session.js";
 import type { RuntimeConfig } from "./config/schema.js";
 import type { EventSink, ObservationEvent } from "./observation/events.js";
 
@@ -271,6 +272,12 @@ describe("buffered Chat Completions forwarding", () => {
           maximumInputCharacters: 65_536,
         },
         exactRedundancy: { enabled: true },
+        conversationCompaction: {
+          enabled: false,
+          minimumMessages: 12,
+          activeWindowMessages: 6,
+          maximumSourceCharacters: 256_000,
+        },
       },
     };
     const app = buildApp(config, { eventSink });
@@ -307,6 +314,13 @@ describe("buffered Chat Completions forwarding", () => {
       expect.objectContaining({
         data: expect.objectContaining({ applied: true, policy: "exact-redundancy" }),
       }),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          applied: false,
+          policy: "conversation-compaction",
+          reason: "disabled",
+        }),
+      }),
     ]);
     expect(
       eventSink.events.find((event) => event.type === "request.measured")?.data,
@@ -317,6 +331,137 @@ describe("buffered Chat Completions forwarding", () => {
         optimizationTokens: 0,
       }),
     );
+  });
+
+  it("compacts eligible old turns once while retaining system and active-window messages", async () => {
+    let receivedBody = Buffer.alloc(0);
+    let providerCalls = 0;
+    const baseUrl = await startProvider((request, response) => {
+      providerCalls += 1;
+      const chunks: Buffer[] = [];
+      request.on("data", (chunk: Buffer) => chunks.push(chunk));
+      request.on("end", () => {
+        receivedBody = Buffer.concat(chunks);
+        response.end('{"choices":[]}');
+      });
+    });
+    const eventSink = new RecordingEventSink();
+    const config: RuntimeConfig = {
+      ...createConfig(baseUrl),
+      mode: "optimize",
+      policies: {
+        killSwitch: false,
+        toolOutput: {
+          enabled: false,
+          collapseRepeatedLinesAfter: 3,
+          maximumInputCharacters: 65_536,
+        },
+        exactRedundancy: { enabled: false },
+        conversationCompaction: {
+          enabled: true,
+          minimumMessages: 8,
+          activeWindowMessages: 2,
+          maximumSourceCharacters: 256_000,
+        },
+      },
+    };
+    const app = buildApp(config, { eventSink });
+    apps.push(app);
+    const messages = [
+      { role: "system", content: "Always preserve compatibility." },
+      ...Array.from({ length: 8 }, (_value, index) => ({
+        role: index % 2 === 0 ? "user" : "assistant",
+        content: `Turn ${index}. ${index === 0 ? "Must retain tests." : ""}\n${"background ".repeat(80)}`,
+      })),
+      { role: "user", content: "This active request stays verbatim." },
+      { role: "assistant", content: "This active answer stays verbatim." },
+    ];
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/chat/completions",
+      headers: authorizedHeaders(),
+      payload: JSON.stringify({ model: "test", messages }),
+    });
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(response.statusCode).toBe(200);
+    expect(providerCalls).toBe(1);
+    const forwarded = JSON.parse(receivedBody.toString("utf8")) as {
+      messages: Array<{ role: string; content: string }>;
+    };
+    expect(forwarded.messages[0]).toEqual(messages[0]);
+    expect(forwarded.messages.slice(-2)).toEqual(messages.slice(-2));
+    expect(
+      forwarded.messages.some((message) =>
+        message.content.includes("Token Shuffle deterministic compacted state."),
+      ),
+    ).toBe(true);
+    expect(
+      eventSink.events.find(
+        (event) =>
+          event.type === "policy.applied" &&
+          event.data.policy === "conversation-compaction",
+      )?.data,
+    ).toEqual(
+      expect.objectContaining({
+        applied: true,
+        optimizationTokens: 0,
+        sourceFingerprint: expect.stringMatching(/^fnv1a-/),
+        summaryVersion: "deterministic-v1",
+      }),
+    );
+    expect(
+      eventSink.events.find((event) => event.type === "request.measured")?.data,
+    ).toEqual(
+      expect.objectContaining({
+        netTokensAvoided: expect.any(Number),
+        optimizationTokens: 0,
+      }),
+    );
+    const fingerprint = eventSink.events.find(
+      (event) =>
+        event.type === "policy.applied" &&
+        event.data.policy === "conversation-compaction",
+    )?.data.sourceFingerprint;
+    expect(fingerprint).toEqual(expect.stringMatching(/^fnv1a-/));
+    const bootstrap = await createDashboardBootstrap(config.storage.path);
+    const exchange = await app.inject({
+      method: "POST",
+      url: "/api/admin/session",
+      headers: {
+        "content-type": "application/json",
+        origin: "http://127.0.0.1:3210",
+      },
+      payload: JSON.stringify({ code: bootstrap.code }),
+    });
+    const recovery = await app.inject({
+      method: "GET",
+      url: `/api/dashboard/compaction/${String(fingerprint)}/source`,
+      headers: { cookie: exchange.headers["set-cookie"]?.split(";")[0] ?? "" },
+    });
+    expect(recovery.statusCode).toBe(200);
+    expect(recovery.json()).toMatchObject({
+      fingerprint,
+      retention: "memory-only",
+      source: expect.arrayContaining([
+        expect.objectContaining({ content: expect.stringContaining("Must retain tests") }),
+      ]),
+    });
+    const requestId = eventSink.events[0]?.requestId ?? "";
+    await app.inject({
+      method: "DELETE",
+      url: `/api/dashboard/requests/${requestId}`,
+      headers: {
+        cookie: exchange.headers["set-cookie"]?.split(";")[0] ?? "",
+        origin: "http://127.0.0.1:3210",
+      },
+    });
+    const deletedRecovery = await app.inject({
+      method: "GET",
+      url: `/api/dashboard/compaction/${String(fingerprint)}/source`,
+      headers: { cookie: exchange.headers["set-cookie"]?.split(";")[0] ?? "" },
+    });
+    expect(deletedRecovery.statusCode).toBe(404);
   });
 
   it("preserves provider error status and body", async () => {

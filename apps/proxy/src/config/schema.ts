@@ -67,6 +67,19 @@ export const TokenShuffleConfigSchema = Type.Object(
               { additionalProperties: false },
             ),
           ),
+          conversationCompaction: Type.Optional(
+            Type.Object(
+              {
+                enabled: Type.Boolean(),
+                minimumMessages: Type.Optional(Type.Integer({ minimum: 4, maximum: 10_000 })),
+                activeWindowMessages: Type.Optional(Type.Integer({ minimum: 2, maximum: 1_000 })),
+                maximumSourceCharacters: Type.Optional(
+                  Type.Integer({ minimum: 1_024, maximum: 16 * 1024 * 1024 }),
+                ),
+              },
+              { additionalProperties: false },
+            ),
+          ),
         },
         { additionalProperties: false },
       ),
@@ -121,6 +134,12 @@ export interface RuntimeConfig {
     };
     readonly exactRedundancy: {
       readonly enabled: boolean;
+    };
+    readonly conversationCompaction: {
+      readonly enabled: boolean;
+      readonly minimumMessages: number;
+      readonly activeWindowMessages: number;
+      readonly maximumSourceCharacters: number;
     };
   };
   readonly limits: {

@@ -54,11 +54,17 @@ Select a session to see its sequence of requests. Select a request to inspect:
 - provider cache reads as a separate category;
 - status and latency.
 
-In v0.3, request replay shows baseline, final forwarded, optimization, and net
+Request replay shows baseline, final forwarded, optimization, and net
 token counts. Session detail aggregates net reduction and policy retry counts so
 a smaller individual request is not silently promoted when session behavior
 regresses. Diagnostics previews each effective policy, its limits, mode, and
 global kill-switch state.
+
+For v0.4 compaction decisions, the lifecycle includes source start/end indexes,
+summary version, invalidation fingerprint, affected-message count, and removed
+characters. Omitted turns remain recoverable for eight hours from bounded
+memory through an explicit **Reveal source** action. They are not persisted or
+exposed to the model, and deleting the request/session/history removes them.
 
 Raw capture is not enabled in v0.2. Structural replay therefore shows
 measurements and lifecycle decisions without reconstructing content that was

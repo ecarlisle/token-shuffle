@@ -21,7 +21,7 @@ Optimize for trustworthiness before feature breadth:
 
 ## Current status
 
-The stable release is **v0.3.0**. **v0.4 is planned but not yet implemented.**
+The stable release is **v0.4.0**. **v0.5 is planned but not yet implemented.**
 
 - The executable exposes authenticated status and buffered/streaming
   `POST /v1/chat/completions` forwarding.
@@ -38,6 +38,13 @@ The stable release is **v0.3.0**. **v0.4 is planned but not yet implemented.**
 - v0.3 may clean control sequences, collapse counted repeated tool-output lines,
   and remove only consecutive identical tool results with the same tool-call ID.
   Do not broaden these rules without replay evidence and an ADR review.
+- v0.4 deterministic compaction preserves system/developer messages and a
+  verbatim active window. It applies only when structured state is smaller,
+  source size is bounded, and every summary records source indexes, version,
+  fingerprint, and uncertainty.
+- v0.4 recovery snapshots are memory-only, bounded, expire after eight hours,
+  clear on restart, and require the administrative session. Do not persist them,
+  expose them to the model, or describe them as v0.5 retrieval.
 - The active runtime baseline is Node.js 24.15+ and TypeScript 6.
 
 Do not describe a planned capability as implemented.

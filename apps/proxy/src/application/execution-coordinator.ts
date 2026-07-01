@@ -43,11 +43,18 @@ const DEFAULT_POLICIES: ContextPolicyConfig = {
     maximumInputCharacters: 64 * 1024,
   },
   exactRedundancy: { enabled: false },
+  conversationCompaction: {
+    enabled: false,
+    minimumMessages: 12,
+    activeWindowMessages: 6,
+    maximumSourceCharacters: 256_000,
+  },
 };
 
 export class ExecutionCoordinator {
   #activeRequests = 0;
   readonly #observations = new Set<RequestObservation>();
+  readonly #compactionRecovery = new CompactionRecoveryStore();
 
   public constructor(
     private readonly provider: OpenAiCompatibleProvider,
@@ -82,6 +89,12 @@ export class ExecutionCoordinator {
       preparation.decisions,
       suppliedSessionId,
       this.eventSink,
+    );
+    this.#retainCompactionSources(
+      body.parsed,
+      preparation.decisions,
+      observation.requestId,
+      observation.sessionId,
     );
     this.#observations.add(observation);
     observation.start();
@@ -134,10 +147,146 @@ export class ExecutionCoordinator {
 
   public async close(): Promise<void> {
     await Promise.all([...this.#observations].map((observation) => observation.done()));
+    this.#compactionRecovery.clear();
+  }
+
+  public compactionSource(fingerprint: string): readonly unknown[] | undefined {
+    return this.#compactionRecovery.get(fingerprint);
+  }
+
+  public deleteRequestCompactionSources(requestId: string): void {
+    this.#compactionRecovery.deleteRequest(requestId);
+  }
+
+  public deleteSessionCompactionSources(sessionId: string): void {
+    this.#compactionRecovery.deleteSession(sessionId);
+  }
+
+  public clearCompactionSources(): void {
+    this.#compactionRecovery.clear();
   }
 
   #finishObservation(observation: RequestObservation): void {
     void observation.done().finally(() => this.#observations.delete(observation));
+  }
+
+  #retainCompactionSources(
+    baseline: unknown,
+    decisions: readonly PolicyDecision[],
+    requestId: string,
+    sessionId: string,
+  ): void {
+    if (typeof baseline !== "object" || baseline === null || !("messages" in baseline)) {
+      return;
+    }
+    const messages = baseline.messages;
+    if (!Array.isArray(messages)) return;
+    for (const decision of decisions) {
+      if (
+        decision.policy !== "conversation-compaction" ||
+        !decision.applied ||
+        decision.sourceFingerprint === undefined ||
+        decision.sourceStart === undefined ||
+        decision.sourceEnd === undefined
+      ) {
+        continue;
+      }
+      const source = messages
+        .slice(decision.sourceStart, decision.sourceEnd + 1)
+        .filter((message) => {
+          if (typeof message !== "object" || message === null || !("role" in message)) {
+            return true;
+          }
+          return message.role !== "system" && message.role !== "developer";
+        });
+      this.#compactionRecovery.set(
+        decision.sourceFingerprint,
+        source,
+        requestId,
+        sessionId,
+      );
+    }
+  }
+}
+
+class CompactionRecoveryStore {
+  readonly #entries = new Map<
+    string,
+    {
+      readonly source: readonly unknown[];
+      readonly bytes: number;
+      readonly expiresAt: number;
+      readonly requestId: string;
+      readonly sessionId: string;
+    }
+  >();
+  #bytes = 0;
+  static readonly maximumEntries = 128;
+  static readonly maximumBytes = 16 * 1024 * 1024;
+  static readonly lifetimeMs = 8 * 60 * 60 * 1_000;
+
+  public set(
+    fingerprint: string,
+    source: readonly unknown[],
+    requestId: string,
+    sessionId: string,
+  ): void {
+    const bytes = Buffer.byteLength(JSON.stringify(source));
+    if (bytes > CompactionRecoveryStore.maximumBytes) return;
+    this.#prune();
+    while (
+      this.#entries.size >= CompactionRecoveryStore.maximumEntries ||
+      this.#bytes + bytes > CompactionRecoveryStore.maximumBytes
+    ) {
+      const oldest = this.#entries.keys().next().value as string | undefined;
+      if (oldest === undefined) break;
+      this.#delete(oldest);
+    }
+    const existing = this.#entries.get(fingerprint);
+    if (existing !== undefined) this.#bytes -= existing.bytes;
+    this.#entries.set(fingerprint, {
+      source,
+      bytes,
+      expiresAt: Date.now() + CompactionRecoveryStore.lifetimeMs,
+      requestId,
+      sessionId,
+    });
+    this.#bytes += bytes;
+  }
+
+  public get(fingerprint: string): readonly unknown[] | undefined {
+    this.#prune();
+    return this.#entries.get(fingerprint)?.source;
+  }
+
+  public clear(): void {
+    this.#entries.clear();
+    this.#bytes = 0;
+  }
+
+  public deleteRequest(requestId: string): void {
+    for (const [fingerprint, entry] of this.#entries) {
+      if (entry.requestId === requestId) this.#delete(fingerprint);
+    }
+  }
+
+  public deleteSession(sessionId: string): void {
+    for (const [fingerprint, entry] of this.#entries) {
+      if (entry.sessionId === sessionId) this.#delete(fingerprint);
+    }
+  }
+
+  #prune(): void {
+    const now = Date.now();
+    for (const [fingerprint, entry] of this.#entries) {
+      if (entry.expiresAt <= now) this.#delete(fingerprint);
+    }
+  }
+
+  #delete(fingerprint: string): void {
+    const entry = this.#entries.get(fingerprint);
+    if (entry !== undefined) this.#bytes -= entry.bytes;
+    this.#entries.delete(fingerprint);
   }
 }
 
@@ -179,6 +328,10 @@ class RequestObservation {
     this.#session = resolveSession(suppliedSessionId);
   }
 
+  public get sessionId(): string {
+    return this.#session.id;
+  }
+
   public start(): void {
     this.emit("request.received", { requestBytes: this.#requestBytes });
     this.emit("request.measured", {
@@ -198,7 +351,7 @@ class RequestObservation {
     });
     for (const decision of this.policyDecisions) {
       this.emit("policy.applied", {
-        ...decision,
+        ...policyDecisionData(decision),
         optimizationTokens: 0,
       });
     }
@@ -439,4 +592,12 @@ function ratio(part: number, whole: number): number {
 
 function numberMetric(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function policyDecisionData(
+  decision: PolicyDecision,
+): Readonly<Record<string, boolean | number | string | null>> {
+  return Object.fromEntries(
+    Object.entries(decision).filter((entry) => entry[1] !== undefined),
+  ) as Readonly<Record<string, boolean | number | string | null>>;
 }

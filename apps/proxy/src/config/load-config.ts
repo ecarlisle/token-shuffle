@@ -121,6 +121,16 @@ export function parseConfig(
       exactRedundancy: {
         enabled: config.policies?.exactRedundancy?.enabled ?? false,
       },
+      conversationCompaction: {
+        enabled: config.policies?.conversationCompaction?.enabled ?? false,
+        minimumMessages:
+          config.policies?.conversationCompaction?.minimumMessages ?? 12,
+        activeWindowMessages:
+          config.policies?.conversationCompaction?.activeWindowMessages ?? 6,
+        maximumSourceCharacters:
+          config.policies?.conversationCompaction?.maximumSourceCharacters ??
+          256_000,
+      },
     },
     limits: {
       ...DEFAULT_LIMITS,

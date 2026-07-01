@@ -117,7 +117,7 @@ net reduction. Oversized policy inputs and the kill switch preserve the original
 request. Protocol tests prove observe-mode byte fidelity remains unchanged and
 optimize mode records final-boundary impact without retries.
 
-## v0.4 — Conversation compaction
+## v0.4 — Conversation compaction (released 2026-07-01)
 
 - Model-assisted or deterministic old-turn summaries.
 - Structured compacted state with source ranges and invalidation.
@@ -126,6 +126,15 @@ optimize mode records final-boundary impact without retries.
 
 Exit: compaction is beneficial over full sessions, including the cost to create
 summaries and any extra agent turns.
+
+Exit evidence: deterministic replay fixtures retain constraints, objectives,
+paths, failures, decisions, open questions, system/developer instructions, and
+the verbatim active window. Eligible long sessions produce positive net
+reduction with zero model optimization tokens and no extra inference turn.
+Source changes produce a different invalidation fingerprint; oversized,
+ineligible, killed, or non-beneficial candidates preserve the original request.
+Applied source remains recoverable from bounded eight-hour process memory behind
+dashboard administration without entering SQLite or model context.
 
 ## v0.5 — Retrieval and externalized context
 

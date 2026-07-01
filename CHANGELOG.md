@@ -4,6 +4,19 @@ This project follows Keep a Changelog conventions while it is pre-release.
 
 ## Unreleased
 
+## 0.4.0 - 2026-07-01
+
+### Added
+
+- Opt-in deterministic conversation compaction with structured retained state,
+  source ranges, versioned fingerprints, and explicit uncertainty.
+- Verbatim system/developer messages, configurable active windows, and
+  tool-boundary protection.
+- Fail-open source limits, no-benefit rejection, and invalidation replay tests.
+- Bounded eight-hour memory-only source recovery with administrative access and
+  request/session/history deletion integration.
+- Full-session net-token and constraint-retention release fixtures.
+
 ## 0.3.0 - 2026-07-01
 
 ### Added

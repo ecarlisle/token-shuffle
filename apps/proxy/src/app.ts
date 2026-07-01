@@ -164,11 +164,11 @@ export function buildApp(
     async () => ({
       mode: config.mode,
       name: "token-shuffle",
-      phase: "v0.3",
+      phase: "v0.4",
       persistence: resilientEventSink.health,
       ready: true,
       streaming: true,
-      version: "0.3.0",
+      version: "0.4.0",
     }),
   );
 
@@ -273,7 +273,7 @@ export function buildApp(
         system: {
           mode: config.mode,
           persistence: resilientEventSink.health,
-          version: "0.3.0",
+          version: "0.4.0",
         },
       };
     },
@@ -313,6 +313,38 @@ export function buildApp(
     },
   );
 
+  app.get<{ Params: { fingerprint: string } }>(
+    "/api/dashboard/compaction/:fingerprint/source",
+    { preHandler: authenticateDashboard },
+    async (request, reply) => {
+      if (!/^fnv1a-[0-9a-f]{8}$/.test(request.params.fingerprint)) {
+        sendDashboardError(
+          reply,
+          400,
+          "invalid_fingerprint",
+          "Compaction fingerprint is invalid.",
+        );
+        return;
+      }
+      const source = coordinator.compactionSource(request.params.fingerprint);
+      reply.header("cache-control", "no-store");
+      if (source === undefined) {
+        sendDashboardError(
+          reply,
+          404,
+          "compaction_source_unavailable",
+          "The memory-only compaction source expired or the proxy restarted.",
+        );
+        return;
+      }
+      return {
+        fingerprint: request.params.fingerprint,
+        retention: "memory-only",
+        source,
+      };
+    },
+  );
+
   app.get(
     "/api/dashboard/diagnostics",
     { preHandler: authenticateDashboard },
@@ -321,8 +353,8 @@ export function buildApp(
       reply.header("cache-control", "no-store");
       return {
         mode: config.mode,
-        version: "0.3.0",
-        phase: "v0.3",
+        version: "0.4.0",
+        phase: "v0.4",
         server: {
           host: config.server.host,
           port: config.server.port,
@@ -352,6 +384,12 @@ export function buildApp(
             maximumInputCharacters: 64 * 1024,
           },
           exactRedundancy: config.policies?.exactRedundancy ?? { enabled: false },
+          conversationCompaction: config.policies?.conversationCompaction ?? {
+            enabled: false,
+            minimumMessages: 12,
+            activeWindowMessages: 6,
+            maximumSourceCharacters: 256_000,
+          },
           dynamicToolDefinitionSelection: {
             mode: "shadow",
             retryCount: 0,
@@ -396,6 +434,7 @@ export function buildApp(
     async (request, reply) => {
       const deleted =
         (await options.eventReader?.deleteRequest?.(request.params.requestId)) ?? 0;
+      coordinator.deleteRequestCompactionSources(request.params.requestId);
       reply.header("cache-control", "no-store");
       return { deletedEvents: deleted };
     },
@@ -407,6 +446,7 @@ export function buildApp(
     async (request, reply) => {
       const deleted =
         (await options.eventReader?.deleteSession?.(request.params.sessionId)) ?? 0;
+      coordinator.deleteSessionCompactionSources(request.params.sessionId);
       reply.header("cache-control", "no-store");
       return { deletedEvents: deleted };
     },
@@ -417,6 +457,7 @@ export function buildApp(
     { preHandler: [requireDashboardOrigin, authenticateDashboard] },
     async (_request, reply) => {
       const deleted = (await options.eventReader?.deleteAll?.()) ?? 0;
+      coordinator.clearCompactionSources();
       reply.header("cache-control", "no-store");
       return { deletedEvents: deleted };
     },

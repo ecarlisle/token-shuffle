@@ -124,6 +124,12 @@ export interface DashboardDiagnostics {
       maximumInputCharacters: number;
     };
     exactRedundancy: { enabled: boolean };
+    conversationCompaction: {
+      enabled: boolean;
+      minimumMessages: number;
+      activeWindowMessages: number;
+      maximumSourceCharacters: number;
+    };
     dynamicToolDefinitionSelection: {
       mode: "shadow";
       retryCount: number;
@@ -163,6 +169,18 @@ export async function loadSession(sessionId: string): Promise<DashboardSessionDe
 
 export async function loadDiagnostics(): Promise<DashboardDiagnostics> {
   return request("/api/dashboard/diagnostics");
+}
+
+export async function loadCompactionSource(
+  fingerprint: string,
+): Promise<{
+  fingerprint: string;
+  retention: "memory-only";
+  source: unknown[];
+}> {
+  return request(
+    `/api/dashboard/compaction/${encodeURIComponent(fingerprint)}/source`,
+  );
 }
 
 export async function deleteRequestEvidence(requestId: string): Promise<void> {

@@ -60,7 +60,7 @@ test.beforeEach(async ({ page }) => {
         system: {
           mode: "observe",
           persistence: { degraded: false, droppedEvents: 0 },
-          version: "0.3.0",
+          version: "0.4.0",
         },
       }),
     }),
@@ -82,6 +82,20 @@ test.beforeEach(async ({ page }) => {
           attemptId: "attempt-1",
           retentionClass: "structural",
           data: { messageCount: 4 },
+        }, {
+          id: "event-2",
+          type: "policy.applied",
+          timestamp: request.timestamp,
+          attemptId: "attempt-1",
+          retentionClass: "structural",
+          data: {
+            policy: "conversation-compaction",
+            applied: true,
+            sourceFingerprint: "fnv1a-12345678",
+            sourceStart: 1,
+            sourceEnd: 8,
+            summaryVersion: "deterministic-v1",
+          },
         }],
         replay: {
           available: false,
@@ -93,14 +107,25 @@ test.beforeEach(async ({ page }) => {
       }),
     }),
   );
+  await page.route("**/api/dashboard/compaction/fnv1a-12345678/source", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        fingerprint: "fnv1a-12345678",
+        retention: "memory-only",
+        source: [{ role: "user", content: "Must preserve compatibility." }],
+      }),
+    }),
+  );
   await page.route("**/api/dashboard/diagnostics", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
         mode: "optimize",
-        version: "0.3.0",
-        phase: "v0.3",
+        version: "0.4.0",
+        phase: "v0.4",
         server: { host: "127.0.0.1", port: 3210 },
         storage: {
           path: "/synthetic/events.sqlite",
@@ -127,6 +152,12 @@ test.beforeEach(async ({ page }) => {
             maximumInputCharacters: 65536,
           },
           exactRedundancy: { enabled: true },
+          conversationCompaction: {
+            enabled: true,
+            minimumMessages: 12,
+            activeWindowMessages: 6,
+            maximumSourceCharacters: 256000,
+          },
           dynamicToolDefinitionSelection: { mode: "shadow", retryCount: 0 },
         },
       }),
@@ -143,6 +174,8 @@ test("explains active policy limits and kill-switch state", async ({ page }) => 
   ).toBeVisible();
   await expect(page.getByText("Kill switch")).toBeVisible();
   await expect(page.getByText("Shadow")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Conversation compaction" })).toBeVisible();
+  await expect(page.getByText("6 active messages · 12 message minimum")).toBeVisible();
 });
 
 test("traces overview evidence into a redacted request detail", async ({ page }) => {
@@ -154,4 +187,7 @@ test("traces overview evidence into a redacted request detail", async ({ page })
   await expect(page.getByRole("heading", { name: "Structural replay" })).toBeVisible();
   await expect(page.getByText("Raw content retention is disabled.")).toBeVisible();
   await expect(page.getByText("request.measured")).toBeVisible();
+  await page.getByRole("button", { name: "Reveal source" }).click();
+  await expect(page.getByText("Memory-only source")).toBeVisible();
+  await expect(page.getByText(/Must preserve compatibility/)).toBeVisible();
 });

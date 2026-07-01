@@ -12,9 +12,9 @@ project. This page is the documentation index.
    - [Pi Coding Agent](getting-started/agents/pi.md)
 4. [Use the web UI](getting-started/web-ui.md)
 
-The user guides describe the stable v0.3 proxy, evidence dashboard, and opt-in
-deterministic policies. Later transform behavior remains separated by roadmap
-milestone.
+The user guides describe the stable v0.4 proxy, evidence dashboard, and opt-in
+deterministic reduction/compaction policies. Later retrieval behavior remains
+separated by roadmap milestone.
 
 ## Product and delivery
 
@@ -25,6 +25,7 @@ milestone.
 - [Version history](version-history.md)
 - [Changelog](../CHANGELOG.md)
 - [v0.3 release validation](testing/v0.3-release-validation.md)
+- [v0.4 release validation](testing/v0.4-release-validation.md)
 
 ## Architecture
 

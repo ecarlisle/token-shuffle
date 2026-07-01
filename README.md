@@ -5,10 +5,10 @@ inference providers. Its purpose is to make context use visible, reduce genuinel
 unnecessary input where that can be done safely, and show enough evidence for a
 user to judge every optimization.
 
-The current stable release is **v0.3.0**. Token Shuffle supports authenticated
+The current stable release is **v0.4.0**. Token Shuffle supports authenticated
 buffered and streaming Chat Completions, privacy-first evidence, and explicitly
-opted-in deterministic tool-output and exact-redundancy policies with a global
-kill switch.
+opted-in deterministic reduction and structured old-turn compaction with a
+global kill switch.
 
 ## Documentation
 

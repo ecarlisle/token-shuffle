@@ -61,6 +61,12 @@ describe("parseConfig", () => {
         maximumInputCharacters: 64 * 1024,
       },
       exactRedundancy: { enabled: false },
+      conversationCompaction: {
+        enabled: false,
+        minimumMessages: 12,
+        activeWindowMessages: 6,
+        maximumSourceCharacters: 256_000,
+      },
     });
   });
 
@@ -69,7 +75,7 @@ describe("parseConfig", () => {
       .replace('"mode": "observe"', '"mode": "optimize"')
       .replace(
         '"server":',
-        '"policies": { "killSwitch": false, "toolOutput": { "enabled": true, "maximumInputCharacters": 4096 }, "exactRedundancy": { "enabled": true } }, "server":',
+        '"policies": { "killSwitch": false, "toolOutput": { "enabled": true, "maximumInputCharacters": 4096 }, "exactRedundancy": { "enabled": true }, "conversationCompaction": { "enabled": true } }, "server":',
       );
     const config = parseConfig(configured, {
       LOCAL_TOKEN: "local-secret",
@@ -79,6 +85,7 @@ describe("parseConfig", () => {
     expect(config.mode).toBe("optimize");
     expect(config.policies?.toolOutput.enabled).toBe(true);
     expect(config.policies?.exactRedundancy.enabled).toBe(true);
+    expect(config.policies?.conversationCompaction.enabled).toBe(true);
   });
 
   it("rejects unknown keys and missing environment variables", () => {

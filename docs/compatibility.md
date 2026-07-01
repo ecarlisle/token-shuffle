@@ -14,7 +14,7 @@ client, provider, field, or model works.
 
 ## Current status
 
-Token Shuffle v0.3.0 has a contract-tested buffered and SSE implementation.
+Token Shuffle v0.4.0 has a contract-tested buffered and SSE implementation.
 OpenCode 1.17.11 has completed live traffic through OpenCode Zen with
 `deepseek-v4-flash-free`. Pi 0.80.3 subsequently completed a live proxied test
 through the same upstream/model. The event ledger increased from eight to eleven
@@ -43,10 +43,12 @@ test metadata rather than guessed in advance. Follow the
 | SSE bytes, event boundaries, backpressure, and cancellation | Fake-provider integration tests | Provisional |
 | Observe-mode request byte fidelity after v0.3 | Fake-provider integration test | Provisional |
 | Deterministic optimize-mode context policies | Replay and fake-provider fixtures | Provisional |
+| Deterministic old-turn compaction | Replay and fake-provider fixtures | Provisional |
 
 The verified live-client combinations were established in observe mode. v0.3
-optimize mode is provisional until separate live agent sessions exercise enabled
-policies; it does not inherit the observe-mode verification label.
+and v0.4 optimize-mode policies are provisional until separate live agent
+sessions exercise enabled policies; they do not inherit the observe-mode
+verification label.
 
 ## Feature matrix
 

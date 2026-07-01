@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   deleteRequestEvidence,
   exchangeBootstrap,
+  loadCompactionSource,
   loadOverview,
   loadRequest,
 } from "./api.js";
@@ -63,6 +64,7 @@ describe("dashboard API client", () => {
 
     await loadRequest("request/one");
     await deleteRequestEvidence("request/one");
+    await loadCompactionSource("fnv1a-abcd/1234");
 
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
@@ -73,6 +75,11 @@ describe("dashboard API client", () => {
       2,
       "/api/dashboard/requests/request%2Fone",
       expect.objectContaining({ method: "DELETE", credentials: "include" }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      "/api/dashboard/compaction/fnv1a-abcd%2F1234/source",
+      expect.objectContaining({ credentials: "include" }),
     );
   });
 });

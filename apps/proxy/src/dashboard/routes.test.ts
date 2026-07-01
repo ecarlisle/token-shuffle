@@ -34,6 +34,10 @@ describe("dashboard routes", () => {
       url: "/api/dashboard/overview",
       headers: { authorization: "Bearer local-test-token" },
     });
+    const compactionSourceWithoutAdmin = await app.inject({
+      method: "GET",
+      url: "/api/dashboard/compaction/fnv1a-12345678/source",
+    });
     const wrongOrigin = await app.inject({
       method: "POST",
       url: "/api/admin/session",
@@ -69,13 +73,14 @@ describe("dashboard routes", () => {
     });
 
     expect(bearerOnly.statusCode).toBe(401);
+    expect(compactionSourceWithoutAdmin.statusCode).toBe(401);
     expect(wrongOrigin.statusCode).toBe(403);
     expect(exchange.statusCode).toBe(200);
     expect(exchange.headers["set-cookie"]).toContain("HttpOnly");
     expect(overview.statusCode).toBe(200);
     expect(overview.json()).toMatchObject({
       summary: { requests: 0, sessions: 0 },
-      system: { version: "0.3.0" },
+      system: { version: "0.4.0" },
     });
     expect(reused.statusCode).toBe(401);
   });

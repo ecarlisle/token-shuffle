@@ -44,6 +44,7 @@ import {
   deleteSessionEvidence,
   exchangeBootstrap,
   loadDiagnostics,
+  loadCompactionSource,
   loadOverview,
   loadRequest,
   loadSession,
@@ -272,6 +273,12 @@ function RequestPage(): React.JSX.Element {
   if (detail.isLoading) return <LoadingScreen embedded />;
   if (detail.isError || detail.data === undefined) return <QueryError error={detail.error} />;
   const request = detail.data;
+  const compactionFingerprint = request.events.find(
+    (event) =>
+      event.type === "policy.applied" &&
+      event.data.policy === "conversation-compaction" &&
+      event.data.applied === true,
+  )?.data.sourceFingerprint;
   return (
     <main className="page-shell">
       <BackLink />
@@ -311,6 +318,9 @@ function RequestPage(): React.JSX.Element {
           <ReplayColumn title="Optimization work" value={request.replay.optimizationTokens} />
         </div>
         <p className="notice mt-4"><InfoIcon size={18} />{request.replay.reason}</p>
+        {typeof compactionFingerprint === "string" ? (
+          <CompactionRecovery fingerprint={compactionFingerprint} />
+        ) : null}
       </section>
 
       <section className="mt-14">
@@ -440,6 +450,7 @@ function DiagnosticsPage(): React.JSX.Element {
           <Fact label="Tool output" value={data.policies.toolOutput.enabled ? "Enabled" : "Disabled"} />
           <Fact label="Policy input limit" value={`${formatNumber(data.policies.toolOutput.maximumInputCharacters)} characters`} />
           <Fact label="Exact redundancy" value={data.policies.exactRedundancy.enabled ? "Enabled" : "Disabled"} />
+          <Fact label="Conversation compaction" value={data.policies.conversationCompaction.enabled ? "Enabled" : "Disabled"} />
         </DiagnosticGroup>
       </section>
       <section className="mt-14">
@@ -462,6 +473,12 @@ function DiagnosticsPage(): React.JSX.Element {
             status="Shadow"
             explanation="Measures tool-definition scope without changing the available tool set."
             limit={`${data.policies.dynamicToolDefinitionSelection.retryCount} policy retries`}
+          />
+          <PolicyPreview
+            name="Conversation compaction"
+            status={data.policies.conversationCompaction.enabled ? "Active" : "Off"}
+            explanation="Replaces eligible old turns with fingerprinted structured state while retaining system instructions and a verbatim active window."
+            limit={`${data.policies.conversationCompaction.activeWindowMessages} active messages · ${data.policies.conversationCompaction.minimumMessages} message minimum`}
           />
         </div>
       </section>
@@ -646,6 +663,39 @@ function ReplayColumn({ title, value }: { title: string; value: number }): React
 
 function PolicyPreview({ name, status, explanation, limit }: { name: string; status: string; explanation: string; limit: string }): React.JSX.Element {
   return <article><div><h3>{name}</h3><span>{status}</span></div><p>{explanation}</p><code>{limit}</code></article>;
+}
+
+function CompactionRecovery({ fingerprint }: { fingerprint: string }): React.JSX.Element {
+  const [source, setSource] = useState<unknown[]>();
+  const [error, setError] = useState<string>();
+  if (source !== undefined) {
+    return (
+      <div className="recovery-panel mt-4">
+        <div>
+          <strong>Memory-only source</strong>
+          <button type="button" onClick={() => setSource(undefined)}>Hide</button>
+        </div>
+        <pre>{JSON.stringify(source, null, 2)}</pre>
+      </div>
+    );
+  }
+  return (
+    <div className="recovery-action mt-4">
+      <div>
+        <p>Original compacted turns are available only in process memory.</p>
+        <code>{fingerprint}</code>
+        {error === undefined ? null : <span>{error}</span>}
+      </div>
+      <button type="button" onClick={() => {
+        setError(undefined);
+        void loadCompactionSource(fingerprint)
+          .then((result) => setSource(result.source))
+          .catch((caught: unknown) =>
+            setError(caught instanceof Error ? caught.message : "Source is unavailable."),
+          );
+      }}>Reveal source</button>
+    </div>
+  );
 }
 
 function BackLink(): React.JSX.Element {

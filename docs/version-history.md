@@ -8,6 +8,29 @@ records the purpose and meaningful outcome of each version. The
 Versions are listed newest first. Update the current entry as its scope becomes
 real, then mark it released with a date before opening the next version entry.
 
+## v0.4 — Conversation compaction
+
+**Status:** Released as `v0.4.0` on 2026-07-01
+
+v0.4 adds an explicitly enabled deterministic old-turn compactor:
+
+- system and developer instructions remain verbatim;
+- a configurable active message window remains verbatim and tool-result
+  boundaries are not split;
+- older turns become structured objectives, constraints, paths/symbols, changed
+  artifacts, failures, decisions, and open questions;
+- each summary records source indexes, a deterministic invalidation fingerprint,
+  summary version, and explicit uncertainty;
+- omitted source remains recoverable for eight hours from bounded process memory
+  through the separately authenticated administrative API and never enters
+  SQLite;
+- compaction applies only when the candidate is smaller than the original;
+- source-size limits, the global kill switch, and ineligible inputs fail open;
+- deterministic summary creation costs zero model tokens and creates no extra
+  provider turn, while accounting still exposes optimization tokens explicitly;
+- long-session replay fixtures verify constraint retention, fingerprint changes,
+  and positive full-session net reduction.
+
 ## v0.3 — First safe transforms
 
 **Status:** Released as `v0.3.0` on 2026-07-01

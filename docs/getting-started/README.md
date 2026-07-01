@@ -1,7 +1,7 @@
 # Getting started
 
 > **Availability:** The proxy, evidence dashboard, and opt-in deterministic
-> policies are implemented in v0.3.0.
+> reduction/compaction policies are implemented in v0.4.0.
 > OpenCode and Pi with OpenCode Zen are verified; other upstream combinations
 > remain provisional.
 
