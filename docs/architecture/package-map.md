@@ -105,6 +105,11 @@ owns:
 The coordinator depends on interfaces; provider, storage, tokenizer, and cache
 implementations are supplied by the composition root.
 
+In v0.4, the implemented coordinator performs baseline measurement, ordered
+context policies, one configured provider attempt, cancellation, and event
+emission. Candidate route planning, response-cache lookup, retry, and failover
+in the list above are planned ownership, not current capabilities.
+
 ## Logical modules
 
 These modules begin internally and may later become packages.
@@ -185,6 +190,10 @@ Owns SQLite migrations and repositories for:
 - dashboard projections;
 - retention deletion.
 
+As of v0.4 only the event repository and retention deletion are implemented.
+Persistent artifacts, summaries, cache records, and durable projections are
+future storage responsibilities.
+
 Accounting stays in core, replay orchestration stays in the application layer,
 and the event repository only persists and reads events. One local-store owner
 prevents several packages from independently controlling the same database.
@@ -262,7 +271,7 @@ Arrows mean “may import or consume.” Core never imports an outer adapter.
 The composition root constructs implementations and supplies them to the
 coordinator; the coordinator depends only on their ports.
 
-## Candidate-specific runtime flow
+## Planned candidate-specific runtime flow
 
 ```text
 client
@@ -292,7 +301,8 @@ execution coordinator
 gateway serialization --> client
 ```
 
-A failover target may use a different tokenizer, context window, tool format, or
+This flow is not implemented in v0.4. A future failover target may use a
+different tokenizer, context window, tool format, or
 provider capability. Context prepared for one candidate is never blindly reused
 for another.
 
@@ -308,8 +318,9 @@ lower layer first:
 5. SQLite persistence and retention;
 6. evidence dashboard;
 7. first deterministic context policy;
-8. second provider or protocol to prove adapter boundaries;
-9. candidate routing and failover.
+8. externalized artifacts and FTS5 retrieval;
+9. second provider or protocol to prove adapter boundaries;
+10. candidate routing and any separately approved failover.
 
 ## See also
 

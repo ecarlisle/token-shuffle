@@ -47,6 +47,23 @@ non-LTS current release.
 
 The development workspace now enforces the Node 24.15 minimum and TypeScript 6.
 
+## Adoption status
+
+This document is the accepted target stack. At v0.4:
+
+- Node, TypeScript, pnpm, Fastify, Undici, TypeBox configuration validation,
+  Pino, `node:sqlite`, React, Vite, TanStack Query/Router/Table, ECharts, Radix,
+  Tailwind, Vitest, and Playwright are adopted;
+- TypeBox/Ajv schemas for every HTTP/event boundary, generated OpenAPI/client
+  types, `AsyncLocalStorage`, checked-in migration files, FTS5 repositories,
+  Biome, fast-check, Knip, markdownlint, Renovate, cross-platform CI, SBOMs, and
+  signed artifacts remain target-state work;
+- the dashboard client currently maintains its public API types locally rather
+  than generating them from OpenAPI.
+
+Target-state entries below are not present-tense capability claims. See the
+[capability matrix](../capabilities.md).
+
 ## Protocol and validation
 
 - Use TypeBox schemas with Fastify/Ajv at HTTP, configuration, event, and
