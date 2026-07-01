@@ -1,26 +1,47 @@
 # Token Shuffle
 
 Token Shuffle is an experimental local proxy between coding-agent clients and
-inference providers. Its purpose is to make context use visible, reduce genuinely
-unnecessary input where that can be done safely, and show enough evidence for a
-user to judge every optimization.
+inference providers. It is for developers who want to inspect how coding agents
+use context and test conservative token-reduction policies without handing
+prompt history to a remote control plane.
 
-The current stable release is **v0.4.0**. Token Shuffle supports authenticated
-buffered and streaming Chat Completions, privacy-first evidence, and explicitly
-opted-in deterministic reduction and structured old-turn compaction with a
-global kill switch.
+The project exists because token savings are easy to overstate. Token Shuffle
+keeps literal reduction, provider-cache discounts, cost, latency, and quality
+evidence separate so users can decide whether an optimization is worthwhile.
 
-## Documentation
+## What works today
 
-- **Application users:** [Getting started](docs/getting-started/README.md)
-- **Compatibility:** [Supported clients, providers, and features](docs/compatibility.md)
-- **Version history:** [Release-level project history](docs/version-history.md)
-- **Documentation index:** [docs/README.md](docs/README.md)
-- **Contributors:** [CONTRIBUTING.md](CONTRIBUTING.md)
-- **Coding agents:** [AGENTS.md](AGENTS.md)
+The current stable release is **v0.4.0**:
 
-The getting-started guide covers the stable proxy, agent configuration, and
-v0.2 evidence dashboard.
+- authenticated loopback OpenAI Chat Completions proxying;
+- buffered and SSE forwarding with cancellation, backpressure, and no automatic
+  inference retries;
+- privacy-first structural events in local SQLite;
+- a separately authenticated local evidence dashboard;
+- opt-in deterministic tool-output reduction and exact redundancy removal;
+- opt-in deterministic old-turn compaction with a global kill switch and
+  bounded memory-only source recovery.
+
+OpenCode 1.17.11 and Pi 0.80.3 are verified in observe mode with OpenCode Zen.
+Optimize-mode policies and other upstream combinations remain provisional. See
+the [compatibility matrix](docs/compatibility.md) for the exact evidence.
+
+## What is next
+
+v0.5 is planned to add retrieval and externalized context. It is not part of the
+current stable release. Later milestones cover protocol/provider breadth,
+workstation packaging, and a trustworthy v1.0 distribution. See the
+[roadmap](docs/roadmap.md).
+
+## Start here
+
+- **Try Token Shuffle:** [Getting started](docs/getting-started/README.md)
+- **See what is supported:** [Compatibility](docs/compatibility.md)
+- **Understand the system:** [Architecture](docs/architecture/overview.md)
+- **Understand the decisions:** [ADR index](docs/architecture/decisions/README.md)
+- **See current and future milestones:** [Roadmap](docs/roadmap.md)
+- **Browse all documentation:** [Documentation index](docs/README.md)
+- **Contribute:** [Contributor guide](CONTRIBUTING.md)
 
 ## Product stance
 
@@ -31,22 +52,16 @@ v0.2 evidence dashboard.
 - Keep payloads local by default and make retention explicit.
 - Prefer quality over an impressive savings percentage.
 
-## Local development
+## Try a repository checkout
 
 Requirements: Node.js 24.15 or newer in the Node 24 LTS line and pnpm 11.
 
 ```sh
 corepack enable
 pnpm install
-pnpm check
-```
-
-To run the proxy, create a configuration from
-[`config.example.jsonc`](config.example.jsonc), export its two referenced
-secrets, then:
-
-```sh
 cp config.example.jsonc config.local.jsonc
+export TOKEN_SHUFFLE_ACCESS_TOKEN="generate-a-long-random-value"
+export UPSTREAM_API_KEY="your-provider-api-key"
 pnpm build
 pnpm proxy:start
 pnpm proxy:status
@@ -55,6 +70,10 @@ pnpm proxy:status
 The `token-shuffle` binary name is available only from a packaged or explicitly
 linked installation; repository checkouts use the `pnpm proxy:*` scripts. See
 the [getting-started instructions](docs/getting-started/README.md).
+
+Before contributing, run `pnpm check` and read the
+[change workflow](docs/contributing/workflow.md). Coding agents must also follow
+[AGENTS.md](AGENTS.md).
 
 ## Repository map
 
