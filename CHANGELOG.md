@@ -4,6 +4,18 @@ This project follows Keep a Changelog conventions while it is pre-release.
 
 ## Unreleased
 
+## 0.3.0 - 2026-07-01
+
+### Added
+
+- Explicit `optimize` mode with opt-in deterministic tool-output cleanup and
+  exact-redundancy policies.
+- Global policy kill switch, bounded fail-open policy input, versioned decision
+  events, and final-boundary token accounting.
+- Baseline-versus-policy replay fixtures and session-level net-token/retry
+  evidence.
+- Shadow-only dynamic tool-definition selection with explicit retry accounting.
+
 ## 0.2.0 - 2026-07-01
 
 ### Added

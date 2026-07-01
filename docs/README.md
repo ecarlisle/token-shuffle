@@ -12,8 +12,9 @@ project. This page is the documentation index.
    - [Pi Coding Agent](getting-started/agents/pi.md)
 4. [Use the web UI](getting-started/web-ui.md)
 
-The user guides describe the stable v0.2 proxy and evidence dashboard. Planned
-transform behavior remains clearly separated under the roadmap.
+The user guides describe the stable v0.3 proxy, evidence dashboard, and opt-in
+deterministic policies. Later transform behavior remains separated by roadmap
+milestone.
 
 ## Product and delivery
 
@@ -23,6 +24,7 @@ transform behavior remains clearly separated under the roadmap.
 - [Roadmap](roadmap.md)
 - [Version history](version-history.md)
 - [Changelog](../CHANGELOG.md)
+- [v0.3 release validation](testing/v0.3-release-validation.md)
 
 ## Architecture
 

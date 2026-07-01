@@ -71,6 +71,8 @@ describe("projectDashboard", () => {
       inputTokens: 118,
       outputTokens: 42,
       literalInputTokensAvoided: 0,
+      optimizationTokens: 0,
+      netTokensAvoided: 0,
       cacheReadInputTokens: 80,
       averageLatencyMs: 1250,
     });

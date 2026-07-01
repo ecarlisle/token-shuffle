@@ -11,6 +11,9 @@ const request = {
   inputTokens: 118,
   outputTokens: 42,
   literalInputTokensAvoided: 0,
+  optimizationTokens: 0,
+  netTokensAvoided: 0,
+  policyRetryCount: 0,
   cacheReadInputTokens: 80,
   provenance: "provider-reported",
 };
@@ -31,6 +34,8 @@ test.beforeEach(async ({ page }) => {
           inputTokens: 118,
           outputTokens: 42,
           literalInputTokensAvoided: 0,
+          optimizationTokens: 0,
+          netTokensAvoided: 0,
           cacheReadInputTokens: 80,
           averageLatencyMs: 1250,
         },
@@ -55,7 +60,7 @@ test.beforeEach(async ({ page }) => {
         system: {
           mode: "observe",
           persistence: { degraded: false, droppedEvents: 0 },
-          version: "0.2.0",
+          version: "0.3.0",
         },
       }),
     }),
@@ -88,6 +93,56 @@ test.beforeEach(async ({ page }) => {
       }),
     }),
   );
+  await page.route("**/api/dashboard/diagnostics", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        mode: "optimize",
+        version: "0.3.0",
+        phase: "v0.3",
+        server: { host: "127.0.0.1", port: 3210 },
+        storage: {
+          path: "/synthetic/events.sqlite",
+          rawContentRetained: false,
+          structuralRetentionDays: 30,
+          errorRetentionDays: 14,
+          eventCount: 8,
+          sqliteVersion: "3.51.3",
+          degraded: false,
+          droppedEvents: 0,
+        },
+        capabilities: {
+          ingress: ["openai-chat-completions"],
+          providers: ["openai-compatible"],
+          streaming: true,
+          retries: false,
+        },
+        policies: {
+          mode: "optimize",
+          killSwitch: false,
+          toolOutput: {
+            enabled: true,
+            collapseRepeatedLinesAfter: 3,
+            maximumInputCharacters: 65536,
+          },
+          exactRedundancy: { enabled: true },
+          dynamicToolDefinitionSelection: { mode: "shadow", retryCount: 0 },
+        },
+      }),
+    }),
+  );
+});
+
+test("explains active policy limits and kill-switch state", async ({ page }) => {
+  await page.goto("/diagnostics");
+  await expect(page.getByRole("heading", { name: "Diagnostics & retention" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Policy preview" })).toBeVisible();
+  await expect(
+    page.locator(".policy-preview code").filter({ hasText: "65,536 characters" }),
+  ).toBeVisible();
+  await expect(page.getByText("Kill switch")).toBeVisible();
+  await expect(page.getByText("Shadow")).toBeVisible();
 });
 
 test("traces overview evidence into a redacted request detail", async ({ page }) => {

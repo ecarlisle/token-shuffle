@@ -207,6 +207,7 @@ describe("buffered Chat Completions forwarding", () => {
       "request.measured",
       "policy.shadow_evaluated",
       "policy.shadow_evaluated",
+      "policy.shadow_evaluated",
       "route.selected",
       "attempt.started",
       "attempt.first_byte",
@@ -236,8 +237,86 @@ describe("buffered Chat Completions forwarding", () => {
           policyVersion: "shadow-v1",
         }),
       }),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          applied: false,
+          policy: "dynamic-tool-definition-selection",
+          policyVersion: "shadow-v1",
+          retryCount: 0,
+        }),
+      }),
     ]);
     expect(JSON.stringify(eventSink.events)).not.toContain(rawBody);
+  });
+
+  it("applies explicitly enabled deterministic policies and records final-boundary impact", async () => {
+    let receivedBody = Buffer.alloc(0);
+    const baseUrl = await startProvider((request, response) => {
+      const chunks: Buffer[] = [];
+      request.on("data", (chunk: Buffer) => chunks.push(chunk));
+      request.on("end", () => {
+        receivedBody = Buffer.concat(chunks);
+        response.end('{"choices":[],"usage":{"prompt_tokens":20,"completion_tokens":1}}');
+      });
+    });
+    const eventSink = new RecordingEventSink();
+    const config: RuntimeConfig = {
+      ...createConfig(baseUrl),
+      mode: "optimize",
+      policies: {
+        killSwitch: false,
+        toolOutput: {
+          enabled: true,
+          collapseRepeatedLinesAfter: 3,
+          maximumInputCharacters: 65_536,
+        },
+        exactRedundancy: { enabled: true },
+      },
+    };
+    const app = buildApp(config, { eventSink });
+    apps.push(app);
+    const duplicate = {
+      role: "tool",
+      tool_call_id: "call-1",
+      content: "\u001b[31mfailed\u001b[0m\nsame\nsame\nsame",
+    };
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/chat/completions",
+      headers: authorizedHeaders(),
+      payload: JSON.stringify({
+        model: "test",
+        messages: [{ role: "user", content: "test" }, duplicate, duplicate],
+      }),
+    });
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(response.statusCode).toBe(200);
+    const forwarded = JSON.parse(receivedBody.toString("utf8")) as {
+      messages: Array<{ content: string }>;
+    };
+    expect(forwarded.messages).toHaveLength(2);
+    expect(forwarded.messages[1]?.content).not.toContain("\u001b");
+    expect(forwarded.messages[1]?.content).toContain("occurred 3 times");
+    expect(
+      eventSink.events.filter((event) => event.type === "policy.applied"),
+    ).toEqual([
+      expect.objectContaining({
+        data: expect.objectContaining({ applied: true, policy: "tool-output" }),
+      }),
+      expect.objectContaining({
+        data: expect.objectContaining({ applied: true, policy: "exact-redundancy" }),
+      }),
+    ]);
+    expect(
+      eventSink.events.find((event) => event.type === "request.measured")?.data,
+    ).toEqual(
+      expect.objectContaining({
+        literalInputTokensAvoided: expect.any(Number),
+        netTokensAvoided: expect.any(Number),
+        optimizationTokens: 0,
+      }),
+    );
   });
 
   it("preserves provider error status and body", async () => {

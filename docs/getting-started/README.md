@@ -1,6 +1,7 @@
 # Getting started
 
-> **Availability:** The proxy and evidence dashboard are implemented in v0.2.0.
+> **Availability:** The proxy, evidence dashboard, and opt-in deterministic
+> policies are implemented in v0.3.0.
 > OpenCode and Pi with OpenCode Zen are verified; other upstream combinations
 > remain provisional.
 

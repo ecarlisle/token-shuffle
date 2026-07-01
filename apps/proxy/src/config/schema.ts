@@ -10,7 +10,7 @@ const EnvironmentReferenceSchema = Type.Object(
 export const TokenShuffleConfigSchema = Type.Object(
   {
     configVersion: Type.Literal(1),
-    mode: Type.Literal("observe"),
+    mode: Type.Union([Type.Literal("observe"), Type.Literal("optimize")]),
     server: Type.Object(
       {
         host: Type.Literal("127.0.0.1"),
@@ -43,6 +43,34 @@ export const TokenShuffleConfigSchema = Type.Object(
         { additionalProperties: false },
       ),
     ),
+    policies: Type.Optional(
+      Type.Object(
+        {
+          killSwitch: Type.Optional(Type.Boolean()),
+          toolOutput: Type.Optional(
+            Type.Object(
+              {
+                enabled: Type.Boolean(),
+                collapseRepeatedLinesAfter: Type.Optional(
+                  Type.Integer({ minimum: 3, maximum: 1_000 }),
+                ),
+                maximumInputCharacters: Type.Optional(
+                  Type.Integer({ minimum: 256, maximum: 16 * 1024 * 1024 }),
+                ),
+              },
+              { additionalProperties: false },
+            ),
+          ),
+          exactRedundancy: Type.Optional(
+            Type.Object(
+              { enabled: Type.Boolean() },
+              { additionalProperties: false },
+            ),
+          ),
+        },
+        { additionalProperties: false },
+      ),
+    ),
     limits: Type.Optional(
       Type.Object(
         {
@@ -65,7 +93,7 @@ export type TokenShuffleConfigFile = Static<typeof TokenShuffleConfigSchema>;
 
 export interface RuntimeConfig {
   readonly configVersion: 1;
-  readonly mode: "observe";
+  readonly mode: "observe" | "optimize";
   readonly server: {
     readonly host: "127.0.0.1";
     readonly port: number;
@@ -83,6 +111,17 @@ export interface RuntimeConfig {
     readonly path: string;
     readonly structuralRetentionDays: number;
     readonly errorRetentionDays: number;
+  };
+  readonly policies?: {
+    readonly killSwitch: boolean;
+    readonly toolOutput: {
+      readonly enabled: boolean;
+      readonly collapseRepeatedLinesAfter: number;
+      readonly maximumInputCharacters: number;
+    };
+    readonly exactRedundancy: {
+      readonly enabled: boolean;
+    };
   };
   readonly limits: {
     readonly requestBodyBytes: number;

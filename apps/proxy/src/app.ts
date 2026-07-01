@@ -82,6 +82,8 @@ export function buildApp(
     provider,
     config.limits.concurrentInferenceRequests,
     eventSink,
+    config.mode,
+    config.policies,
   );
   const shutdownController = new AbortController();
   const adminSessions = new AdminSessionManager(config.storage.path);
@@ -160,13 +162,13 @@ export function buildApp(
     "/_token-shuffle/status",
     { preHandler: authenticate },
     async () => ({
-      mode: "observe",
+      mode: config.mode,
       name: "token-shuffle",
-      phase: "v0.2",
+      phase: "v0.3",
       persistence: resilientEventSink.health,
       ready: true,
       streaming: true,
-      version: "0.2.0",
+      version: "0.3.0",
     }),
   );
 
@@ -271,7 +273,7 @@ export function buildApp(
         system: {
           mode: config.mode,
           persistence: resilientEventSink.health,
-          version: "0.2.0",
+          version: "0.3.0",
         },
       };
     },
@@ -319,8 +321,8 @@ export function buildApp(
       reply.header("cache-control", "no-store");
       return {
         mode: config.mode,
-        version: "0.2.0",
-        phase: "v0.2",
+        version: "0.3.0",
+        phase: "v0.3",
         server: {
           host: config.server.host,
           port: config.server.port,
@@ -340,6 +342,20 @@ export function buildApp(
           providers: ["openai-compatible"],
           streaming: true,
           retries: false,
+        },
+        policies: {
+          mode: config.mode,
+          killSwitch: config.policies?.killSwitch ?? false,
+          toolOutput: config.policies?.toolOutput ?? {
+            enabled: false,
+            collapseRepeatedLinesAfter: 3,
+            maximumInputCharacters: 64 * 1024,
+          },
+          exactRedundancy: config.policies?.exactRedundancy ?? { enabled: false },
+          dynamicToolDefinitionSelection: {
+            mode: "shadow",
+            retryCount: 0,
+          },
         },
       };
     },

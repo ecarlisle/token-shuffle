@@ -18,6 +18,8 @@ export interface DashboardSummary {
   readonly inputTokens: number;
   readonly outputTokens: number;
   readonly literalInputTokensAvoided: number;
+  readonly optimizationTokens: number;
+  readonly netTokensAvoided: number;
   readonly cacheReadInputTokens: number;
   readonly averageLatencyMs: number;
 }
@@ -26,9 +28,14 @@ export interface DashboardSession {
   readonly id: string;
   readonly association: "explicit" | "inferred";
   readonly requests: number;
+  readonly completedRequests: number;
+  readonly failedRequests: number;
   readonly model: string;
   readonly inputTokens: number;
   readonly outputTokens: number;
+  readonly literalInputTokensAvoided: number;
+  readonly netTokensAvoided: number;
+  readonly policyRetryCount: number;
   readonly lastActivity: string;
 }
 
@@ -43,6 +50,9 @@ export interface DashboardRequest {
   readonly inputTokens: number;
   readonly outputTokens: number;
   readonly literalInputTokensAvoided: number;
+  readonly optimizationTokens: number;
+  readonly netTokensAvoided: number;
+  readonly policyRetryCount: number;
   readonly cacheReadInputTokens: number;
   readonly provenance: string;
 }
@@ -93,6 +103,9 @@ interface MutableRequest
     | "inputTokens"
     | "outputTokens"
     | "literalInputTokensAvoided"
+    | "optimizationTokens"
+    | "netTokensAvoided"
+    | "policyRetryCount"
     | "cacheReadInputTokens"
     | "provenance"
   > {
@@ -102,6 +115,9 @@ interface MutableRequest
   inputTokens: number;
   outputTokens: number;
   literalInputTokensAvoided: number;
+  optimizationTokens: number;
+  netTokensAvoided: number;
+  policyRetryCount: number;
   cacheReadInputTokens: number;
   provenance: string;
   protocol: string;
@@ -128,6 +144,8 @@ export function projectDashboard(events: readonly ObservationEvent[]): Dashboard
       inputTokens: sum(completed, "inputTokens"),
       outputTokens: sum(completed, "outputTokens"),
       literalInputTokensAvoided: sum(completed, "literalInputTokensAvoided"),
+      optimizationTokens: sum(completed, "optimizationTokens"),
+      netTokensAvoided: sum(completed, "netTokensAvoided"),
       cacheReadInputTokens: sum(completed, "cacheReadInputTokens"),
       averageLatencyMs:
         latencyValues.length === 0
@@ -177,7 +195,7 @@ export function projectRequest(
         "Raw content retention is disabled. This structural replay shows measurements and lifecycle events without reconstructing prompt or response content.",
       baselineInputTokens: request.baselineInputTokens,
       forwardedInputTokens: request.forwardedInputTokens,
-      optimizationTokens: 0,
+      optimizationTokens: request.optimizationTokens,
     },
   };
 }
@@ -219,6 +237,9 @@ function collectRequests(events: readonly ObservationEvent[]): MutableRequest[] 
       baselineInputTokens: 0,
       forwardedInputTokens: 0,
       literalInputTokensAvoided: 0,
+      optimizationTokens: 0,
+      netTokensAvoided: 0,
+      policyRetryCount: 0,
       cacheReadInputTokens: 0,
       provenance: "estimate",
       structure: {},
@@ -233,8 +254,15 @@ function collectRequests(events: readonly ObservationEvent[]): MutableRequest[] 
       request.literalInputTokensAvoided = numberValue(
         event.data.literalInputTokensAvoided,
       );
+      request.optimizationTokens = numberValue(event.data.optimizationTokens);
+      request.netTokensAvoided = numberValue(
+        event.data.netTokensAvoided,
+        request.literalInputTokensAvoided - request.optimizationTokens,
+      );
       request.provenance = stringValue(event.data.provenance, request.provenance);
       request.structure = { ...event.data };
+    } else if (event.type === "policy.shadow_evaluated") {
+      request.policyRetryCount += numberValue(event.data.retryCount);
     } else if (event.type === "attempt.usage") {
       request.inputTokens = numberValue(event.data.inputTokens, request.inputTokens);
       request.outputTokens = numberValue(event.data.outputTokens);
@@ -261,9 +289,21 @@ function collectSessions(requests: readonly MutableRequest[]): DashboardSession[
       id: request.sessionId,
       association: request.association,
       requests: (existing?.requests ?? 0) + 1,
+      completedRequests:
+        (existing?.completedRequests ?? 0) + (request.statusCode === null ? 0 : 1),
+      failedRequests:
+        (existing?.failedRequests ?? 0) +
+        (request.events.some((event) => event.type === "attempt.failed") ? 1 : 0),
       model: request.model,
       inputTokens: (existing?.inputTokens ?? 0) + request.inputTokens,
       outputTokens: (existing?.outputTokens ?? 0) + request.outputTokens,
+      literalInputTokensAvoided:
+        (existing?.literalInputTokensAvoided ?? 0) +
+        request.literalInputTokensAvoided,
+      netTokensAvoided:
+        (existing?.netTokensAvoided ?? 0) + request.netTokensAvoided,
+      policyRetryCount:
+        (existing?.policyRetryCount ?? 0) + request.policyRetryCount,
       lastActivity:
         existing === undefined || request.timestamp > existing.lastActivity
           ? request.timestamp
@@ -306,6 +346,9 @@ function publicRequest(request: MutableRequest): DashboardRequest {
     inputTokens: request.inputTokens,
     outputTokens: request.outputTokens,
     literalInputTokensAvoided: request.literalInputTokensAvoided,
+    optimizationTokens: request.optimizationTokens,
+    netTokensAvoided: request.netTokensAvoided,
+    policyRetryCount: request.policyRetryCount,
     cacheReadInputTokens: request.cacheReadInputTokens,
     provenance: request.provenance,
   };
@@ -329,6 +372,8 @@ function sum(
     | "inputTokens"
     | "outputTokens"
     | "literalInputTokensAvoided"
+    | "optimizationTokens"
+    | "netTokensAvoided"
     | "cacheReadInputTokens",
 ): number {
   return values.reduce((total, value) => total + value[key], 0);

@@ -6,6 +6,7 @@ export type ObservationEventType =
   | "request.received"
   | "request.measured"
   | "policy.shadow_evaluated"
+  | "policy.applied"
   | "route.selected"
   | "attempt.started"
   | "attempt.first_byte"

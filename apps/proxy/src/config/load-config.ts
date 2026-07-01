@@ -93,7 +93,7 @@ export function parseConfig(
   const config = value as TokenShuffleConfigFile;
   return {
     configVersion: 1,
-    mode: "observe",
+    mode: config.mode,
     server: config.server,
     auth: {
       accessToken: resolveSecret(config.auth.accessToken, environment),
@@ -108,6 +108,19 @@ export function parseConfig(
       path: config.storage?.path ?? join(dirname(defaultConfigPath()), "events.sqlite"),
       structuralRetentionDays: config.storage?.structuralRetentionDays ?? 30,
       errorRetentionDays: config.storage?.errorRetentionDays ?? 14,
+    },
+    policies: {
+      killSwitch: config.policies?.killSwitch ?? false,
+      toolOutput: {
+        enabled: config.policies?.toolOutput?.enabled ?? false,
+        collapseRepeatedLinesAfter:
+          config.policies?.toolOutput?.collapseRepeatedLinesAfter ?? 3,
+        maximumInputCharacters:
+          config.policies?.toolOutput?.maximumInputCharacters ?? 64 * 1024,
+      },
+      exactRedundancy: {
+        enabled: config.policies?.exactRedundancy?.enabled ?? false,
+      },
     },
     limits: {
       ...DEFAULT_LIMITS,

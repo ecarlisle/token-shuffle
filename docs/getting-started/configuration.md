@@ -1,6 +1,6 @@
 # Configure Token Shuffle
 
-> **Availability:** Implemented in v0.1.0. Multi-provider configuration is
+> **Availability:** Implemented in v0.3.0. Multi-provider configuration is
 > intentionally deferred.
 
 ## Configuration location
@@ -45,12 +45,23 @@ Use `token-shuffle config path` to show the active default. Override it with
     "path": "/path/to/token-shuffle-events.sqlite",
     "structuralRetentionDays": 30,
     "errorRetentionDays": 14
+  },
+  "policies": {
+    "killSwitch": false,
+    "toolOutput": {
+      "enabled": false,
+      "collapseRepeatedLinesAfter": 3,
+      "maximumInputCharacters": 65536
+    },
+    "exactRedundancy": {
+      "enabled": false
+    }
   }
 }
 ```
 
 Replace `baseUrl` with the provider's official OpenAI-compatible endpoint. The
-v0.1 proxy accepts one upstream and forwards the model ID supplied by the agent.
+The current proxy accepts one upstream and forwards the model ID supplied by the agent.
 Multi-provider routing arrives later in the roadmap.
 
 ## Configuration rules
@@ -82,10 +93,24 @@ an automatic inference retry.
 
 - `observe` forwards requests without semantic transformation while recording
   approved structural metrics.
-- Transform modes are unavailable until their roadmap release and require
-  explicit policy configuration.
+- `optimize` permits only explicitly enabled v0.3 deterministic policies.
 
 Observe mode is the default and the recommended starting point.
+
+### `policies`
+
+Both v0.3 policies default to disabled. Set `mode` to `optimize` and enable each
+policy separately:
+
+- `toolOutput` removes ANSI/non-semantic controls and replaces runs of repeated
+  lines with the retained line plus an exact count marker;
+- `exactRedundancy` removes only consecutive identical tool-result messages with
+  the same `tool_call_id`.
+
+`maximumInputCharacters` is a safety bound, not a truncation target. Tool output
+larger than the limit bypasses the policy unchanged. `killSwitch: true` bypasses
+all active policies without requiring other configuration changes. Restart the
+proxy after changing policy configuration.
 
 ### `server`
 
@@ -149,7 +174,7 @@ Validation checks syntax, unknown keys, environment-variable presence, loopback
 binding, upstream URL policy, and incompatible options. It never prints resolved
 secret values. `doctor` checks storage access and runtime connectivity.
 
-Configuration changes require restart in v0.1. A port collision is an error;
+Configuration changes require restart. A port collision is an error;
 Token Shuffle does not silently choose a different port.
 
 For runtime connectivity and storage checks:

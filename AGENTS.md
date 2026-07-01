@@ -21,7 +21,7 @@ Optimize for trustworthiness before feature breadth:
 
 ## Current status
 
-The stable release is **v0.2.0**. **v0.3 is planned but not yet implemented.**
+The stable release is **v0.3.0**. **v0.4 is planned but not yet implemented.**
 
 - The executable exposes authenticated status and buffered/streaming
   `POST /v1/chat/completions` forwarding.
@@ -33,6 +33,11 @@ The stable release is **v0.2.0**. **v0.3 is planned but not yet implemented.**
   and immediate evidence deletion.
 - Deterministic shadow-policy events never mutate forwarded requests or claim
   hypothetical scope as realized savings.
+- Active policies run only in `optimize` mode with explicit per-policy opt-in.
+  The kill switch and policy input limits fail open to the original request.
+- v0.3 may clean control sequences, collapse counted repeated tool-output lines,
+  and remove only consecutive identical tool results with the same tool-call ID.
+  Do not broaden these rules without replay evidence and an ADR review.
 - The active runtime baseline is Node.js 24.15+ and TypeScript 6.
 
 Do not describe a planned capability as implemented.
@@ -110,6 +115,10 @@ For supported v0.1 requests:
 - do not rewrite model IDs;
 - do not reorder, remove, or reinterpret unknown fields;
 - do not let shadow policies change the forwarded request.
+
+Optimize mode may reserialize only when an enabled policy actually changes
+content. If no policy applies, preserve the original request bytes. Every active
+change emits a policy decision and final-boundary token impact.
 
 Headers follow the explicit security policy and are not byte-preserved:
 

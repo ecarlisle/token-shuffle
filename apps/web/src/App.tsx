@@ -189,7 +189,7 @@ function OverviewPage(): React.JSX.Element {
         <Metric label="Completed requests" value={formatNumber(data.summary.requests)} />
         <Metric label="Input tokens" value={formatCompact(data.summary.inputTokens)} />
         <Metric label="Output tokens" value={formatCompact(data.summary.outputTokens)} />
-        <Metric label="Average latency" value={formatDuration(data.summary.averageLatencyMs)} />
+        <Metric label="Net tokens avoided" value={formatCompact(data.summary.netTokensAvoided)} />
       </section>
 
       <section className="mt-14">
@@ -299,6 +299,8 @@ function RequestPage(): React.JSX.Element {
         <Fact label="Output tokens" value={formatNumber(request.outputTokens)} />
         <Fact label="Cache reads" value={`${formatNumber(request.cacheReadInputTokens)} · separate`} />
         <Fact label="Latency" value={formatDuration(request.durationMs ?? 0)} />
+        <Fact label="Net avoided" value={formatNumber(request.netTokensAvoided)} />
+        <Fact label="Policy retries" value={formatNumber(request.policyRetryCount)} />
       </section>
 
       <section className="mt-14">
@@ -372,10 +374,10 @@ function SessionPage(): React.JSX.Element {
         />
       </div>
       <section className="metric-grid mt-10" aria-label="Session totals">
-        <Metric label="Requests" value={formatNumber(session.requests)} />
-        <Metric label="Input tokens" value={formatCompact(session.inputTokens)} />
-        <Metric label="Output tokens" value={formatCompact(session.outputTokens)} />
-        <Metric label="Last activity" value={formatTime(session.lastActivity)} />
+        <Metric label="Completed" value={`${formatNumber(session.completedRequests)}/${formatNumber(session.requests)}`} />
+        <Metric label="Total tokens" value={formatCompact(session.inputTokens + session.outputTokens)} />
+        <Metric label="Net avoided" value={formatCompact(session.netTokensAvoided)} />
+        <Metric label="Policy retries" value={formatNumber(session.policyRetryCount)} />
       </section>
       <section className="mt-14">
         <SectionHeading title="Request sequence" />
@@ -432,6 +434,36 @@ function DiagnosticsPage(): React.JSX.Element {
           <Fact label="Dropped events" value={formatNumber(data.storage.droppedEvents)} />
           <Fact label="Retries" value={data.capabilities.retries ? "Enabled" : "None"} />
         </DiagnosticGroup>
+        <DiagnosticGroup title="Policies">
+          <Fact label="Mode" value={data.policies.mode} />
+          <Fact label="Kill switch" value={data.policies.killSwitch ? "Active" : "Inactive"} />
+          <Fact label="Tool output" value={data.policies.toolOutput.enabled ? "Enabled" : "Disabled"} />
+          <Fact label="Policy input limit" value={`${formatNumber(data.policies.toolOutput.maximumInputCharacters)} characters`} />
+          <Fact label="Exact redundancy" value={data.policies.exactRedundancy.enabled ? "Enabled" : "Disabled"} />
+        </DiagnosticGroup>
+      </section>
+      <section className="mt-14">
+        <SectionHeading title="Policy preview" detail="Effective configuration; restart to change" />
+        <div className="policy-preview">
+          <PolicyPreview
+            name="Tool output"
+            status={data.policies.toolOutput.enabled ? "Active" : "Off"}
+            explanation="Cleans ANSI controls and collapses counted repeated lines. Inputs above the configured limit pass through unchanged."
+            limit={`${formatNumber(data.policies.toolOutput.maximumInputCharacters)} characters`}
+          />
+          <PolicyPreview
+            name="Exact redundancy"
+            status={data.policies.exactRedundancy.enabled ? "Active" : "Off"}
+            explanation="Removes only consecutive identical tool-result messages with the same tool-call identity."
+            limit="Consecutive tool results only"
+          />
+          <PolicyPreview
+            name="Tool selection"
+            status="Shadow"
+            explanation="Measures tool-definition scope without changing the available tool set."
+            limit={`${data.policies.dynamicToolDefinitionSelection.retryCount} policy retries`}
+          />
+        </div>
       </section>
       <p className="notice mt-8">
         <LockKeyIcon size={18} />
@@ -610,6 +642,10 @@ function DiagnosticGroup({ title, children }: { title: string; children: React.R
 
 function ReplayColumn({ title, value }: { title: string; value: number }): React.JSX.Element {
   return <div><p className="text-sm text-secondary">{title}</p><p className="mt-3 font-mono text-2xl">{formatNumber(value)} tokens</p></div>;
+}
+
+function PolicyPreview({ name, status, explanation, limit }: { name: string; status: string; explanation: string; limit: string }): React.JSX.Element {
+  return <article><div><h3>{name}</h3><span>{status}</span></div><p>{explanation}</p><code>{limit}</code></article>;
 }
 
 function BackLink(): React.JSX.Element {

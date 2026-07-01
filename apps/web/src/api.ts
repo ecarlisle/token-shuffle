@@ -9,6 +9,9 @@ export interface DashboardRequest {
   inputTokens: number;
   outputTokens: number;
   literalInputTokensAvoided: number;
+  optimizationTokens: number;
+  netTokensAvoided: number;
+  policyRetryCount: number;
   cacheReadInputTokens: number;
   provenance: string;
 }
@@ -17,9 +20,14 @@ export interface DashboardSession {
   id: string;
   association: "explicit" | "inferred";
   requests: number;
+  completedRequests: number;
+  failedRequests: number;
   model: string;
   inputTokens: number;
   outputTokens: number;
+  literalInputTokensAvoided: number;
+  netTokensAvoided: number;
+  policyRetryCount: number;
   lastActivity: string;
 }
 
@@ -31,6 +39,8 @@ export interface DashboardOverview {
     inputTokens: number;
     outputTokens: number;
     literalInputTokensAvoided: number;
+    optimizationTokens: number;
+    netTokensAvoided: number;
     cacheReadInputTokens: number;
     averageLatencyMs: number;
   };
@@ -48,7 +58,7 @@ export interface DashboardOverview {
   sessions: DashboardSession[];
   recentRequests: DashboardRequest[];
   system: {
-    mode: "observe";
+    mode: "observe" | "optimize";
     persistence: {
       degraded: boolean;
       droppedEvents: number;
@@ -85,7 +95,7 @@ export interface DashboardSessionDetail extends DashboardSession {
 }
 
 export interface DashboardDiagnostics {
-  mode: "observe";
+  mode: "observe" | "optimize";
   version: string;
   phase: string;
   server: { host: string; port: number };
@@ -104,6 +114,20 @@ export interface DashboardDiagnostics {
     providers: string[];
     streaming: boolean;
     retries: boolean;
+  };
+  policies: {
+    mode: "observe" | "optimize";
+    killSwitch: boolean;
+    toolOutput: {
+      enabled: boolean;
+      collapseRepeatedLinesAfter: number;
+      maximumInputCharacters: number;
+    };
+    exactRedundancy: { enabled: boolean };
+    dynamicToolDefinitionSelection: {
+      mode: "shadow";
+      retryCount: number;
+    };
   };
 }
 

@@ -23,5 +23,17 @@
     "path": "./token-shuffle-events.sqlite",
     "structuralRetentionDays": 30,
     "errorRetentionDays": 14
+  },
+  "policies": {
+    // v0.3 policies are opt-in. This switch immediately bypasses all of them.
+    "killSwitch": false,
+    "toolOutput": {
+      "enabled": false,
+      "collapseRepeatedLinesAfter": 3,
+      "maximumInputCharacters": 65536
+    },
+    "exactRedundancy": {
+      "enabled": false
+    }
   }
 }

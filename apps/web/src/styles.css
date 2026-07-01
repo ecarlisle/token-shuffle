@@ -467,6 +467,55 @@ td {
   border-right: 0;
 }
 
+.policy-preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-block: 1px solid var(--line);
+}
+
+.policy-preview article {
+  padding: 22px;
+  border-right: 1px solid var(--line);
+}
+
+.policy-preview article:first-child {
+  padding-left: 0;
+}
+
+.policy-preview article:last-child {
+  border-right: 0;
+}
+
+.policy-preview article > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.policy-preview h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.policy-preview span {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.policy-preview p {
+  min-height: 64px;
+  color: var(--secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.policy-preview code {
+  color: var(--tertiary);
+  font-size: 11px;
+}
+
 .danger-button,
 .confirm-delete button {
   display: inline-flex;
@@ -621,11 +670,19 @@ td {
   }
 
   .replay-grid,
-  .diagnostic-groups {
+  .diagnostic-groups,
+  .policy-preview {
     grid-template-columns: 1fr;
   }
 
   .replay-grid > div {
+    padding: 18px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .policy-preview article,
+  .policy-preview article:first-child {
     padding: 18px 0;
     border-right: 0;
     border-bottom: 1px solid var(--line);

@@ -8,6 +8,27 @@ records the purpose and meaningful outcome of each version. The
 Versions are listed newest first. Update the current entry as its scope becomes
 real, then mark it released with a date before opening the next version entry.
 
+## v0.3 — First safe transforms
+
+**Status:** Released as `v0.3.0` on 2026-07-01
+
+v0.3 introduces explicitly opted-in deterministic context policies:
+
+- `optimize` mode is separate from byte-preserving `observe` mode;
+- tool-output cleanup removes ANSI/non-semantic controls and collapses repeated
+  lines while retaining the line and exact repetition count;
+- exact redundancy removes only consecutive byte-identical tool-result messages
+  carrying the same tool-call ID;
+- oversized policy inputs and a global kill switch fail open to the original;
+- active decisions, baseline/forwarded counts, optimization work, literal
+  reduction, and net reduction are persisted separately;
+- dynamic tool-definition selection remains shadow-only with explicit zero
+  retry accounting;
+- request and session views compare final-boundary net reduction and policy
+  retries;
+- the deterministic replay harness verifies positive reduction without changing
+  accepted semantic fixture content.
+
 ## v0.2 — Evidence dashboard
 
 **Status:** Released as `v0.2.0` on 2026-07-01

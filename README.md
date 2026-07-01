@@ -5,10 +5,10 @@ inference providers. Its purpose is to make context use visible, reduce genuinel
 unnecessary input where that can be done safely, and show enough evidence for a
 user to judge every optimization.
 
-The current stable release is **v0.2.0**. The transparent observer supports
-authenticated buffered and streaming Chat Completions, structural measurement,
-privacy-first SQLite events, and a separately authenticated local evidence
-dashboard.
+The current stable release is **v0.3.0**. Token Shuffle supports authenticated
+buffered and streaming Chat Completions, privacy-first evidence, and explicitly
+opted-in deterministic tool-output and exact-redundancy policies with a global
+kill switch.
 
 ## Documentation
 
@@ -44,7 +44,7 @@ pnpm check
 To run the proxy, create a configuration from
 [`config.example.jsonc`](config.example.jsonc), export its two referenced
 secrets, and follow the
-[development instructions](docs/getting-started/README.md#current-development-slice).
+[getting-started instructions](docs/getting-started/README.md).
 
 ## Repository map
 

@@ -1,6 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { performance } from "node:perf_hooks";
 
+import {
+  applyContextPolicies,
+  type ContextPolicyConfig,
+  type PolicyDecision,
+} from "@token-shuffle/core";
+
 import { TokenShuffleError } from "../errors.js";
 import {
   EVENT_SCHEMA_VERSION,
@@ -29,6 +35,16 @@ export interface ProviderUsage {
   readonly cacheReadInputTokens?: number;
 }
 
+const DEFAULT_POLICIES: ContextPolicyConfig = {
+  killSwitch: false,
+  toolOutput: {
+    enabled: false,
+    collapseRepeatedLinesAfter: 3,
+    maximumInputCharacters: 64 * 1024,
+  },
+  exactRedundancy: { enabled: false },
+};
+
 export class ExecutionCoordinator {
   #activeRequests = 0;
   readonly #observations = new Set<RequestObservation>();
@@ -37,6 +53,8 @@ export class ExecutionCoordinator {
     private readonly provider: OpenAiCompatibleProvider,
     private readonly concurrencyLimit: number,
     private readonly eventSink: EventSink = new NoopEventSink(),
+    private readonly mode: "observe" | "optimize" = "observe",
+    private readonly policies: ContextPolicyConfig = DEFAULT_POLICIES,
   ) {}
 
   public async execute(
@@ -48,7 +66,23 @@ export class ExecutionCoordinator {
       return undefined;
     }
 
-    const observation = new RequestObservation(body, suppliedSessionId, this.eventSink);
+    const preparation =
+      this.mode === "optimize"
+        ? applyContextPolicies(body.parsed, this.policies)
+        : { value: body.parsed, changed: false, decisions: [] };
+    const preparedBody: RawJsonBody = preparation.changed
+      ? {
+          parsed: preparation.value,
+          raw: Buffer.from(JSON.stringify(preparation.value)),
+        }
+      : body;
+    const observation = new RequestObservation(
+      body,
+      preparedBody,
+      preparation.decisions,
+      suppliedSessionId,
+      this.eventSink,
+    );
     this.#observations.add(observation);
     observation.start();
     this.#activeRequests += 1;
@@ -60,7 +94,7 @@ export class ExecutionCoordinator {
     signal.addEventListener("abort", markCancelled, { once: true });
 
     try {
-      const response = await this.provider.chatCompletions(body.raw, signal);
+      const response = await this.provider.chatCompletions(preparedBody.raw, signal);
       let released = false;
       let finished = false;
       return {
@@ -113,7 +147,8 @@ class RequestObservation {
   readonly #startedAt = performance.now();
   readonly #model: string;
   readonly #requestBytes: number;
-  readonly #inputEstimate: number;
+  readonly #baselineInputEstimate: number;
+  readonly #forwardedInputEstimate: number;
   readonly #session: ObservationEvent["session"];
   readonly #structuralMetrics: Readonly<Record<string, boolean | number | string | null>>;
   #firstByteRecorded = false;
@@ -122,7 +157,9 @@ class RequestObservation {
   readonly #markFinished: () => void;
 
   public constructor(
-    body: RawJsonBody,
+    baselineBody: RawJsonBody,
+    forwardedBody: RawJsonBody,
+    private readonly policyDecisions: readonly PolicyDecision[],
     suppliedSessionId: string | undefined,
     private readonly sink: EventSink,
   ) {
@@ -131,22 +168,40 @@ class RequestObservation {
       resolveFinished = resolve;
     });
     this.#markFinished = () => resolveFinished?.();
-    this.#model = readModel(body.parsed);
-    this.#requestBytes = body.raw.byteLength;
-    this.#inputEstimate = estimateTokens(body.raw.byteLength);
-    this.#structuralMetrics = measureStructure(body.parsed, body.raw.byteLength);
+    this.#model = readModel(baselineBody.parsed);
+    this.#requestBytes = baselineBody.raw.byteLength;
+    this.#baselineInputEstimate = estimateTokens(baselineBody.raw.byteLength);
+    this.#forwardedInputEstimate = estimateTokens(forwardedBody.raw.byteLength);
+    this.#structuralMetrics = measureStructure(
+      baselineBody.parsed,
+      baselineBody.raw.byteLength,
+    );
     this.#session = resolveSession(suppliedSessionId);
   }
 
   public start(): void {
     this.emit("request.received", { requestBytes: this.#requestBytes });
     this.emit("request.measured", {
-      baselineInputTokens: this.#inputEstimate,
-      forwardedInputTokens: this.#inputEstimate,
-      literalInputTokensAvoided: 0,
+      baselineInputTokens: this.#baselineInputEstimate,
+      forwardedInputTokens: this.#forwardedInputEstimate,
+      literalInputTokensAvoided: Math.max(
+        0,
+        this.#baselineInputEstimate - this.#forwardedInputEstimate,
+      ),
+      optimizationTokens: 0,
+      netTokensAvoided: Math.max(
+        0,
+        this.#baselineInputEstimate - this.#forwardedInputEstimate,
+      ),
       provenance: "estimate",
       ...this.#structuralMetrics,
     });
+    for (const decision of this.policyDecisions) {
+      this.emit("policy.applied", {
+        ...decision,
+        optimizationTokens: 0,
+      });
+    }
     this.emitShadowEvaluation(
       "exact-redundancy",
       numberMetric(this.#structuralMetrics.repeatedInputTokens),
@@ -156,6 +211,11 @@ class RequestObservation {
       "tool-output-compaction",
       numberMetric(this.#structuralMetrics.toolOutputTokens),
       256,
+    );
+    this.emitShadowEvaluation(
+      "dynamic-tool-definition-selection",
+      numberMetric(this.#structuralMetrics.toolDefinitionTokens),
+      1,
     );
     this.emit("route.selected", { reason: "configured-single-upstream" });
     this.emit("attempt.started", {});
@@ -182,6 +242,9 @@ class RequestObservation {
       observedInputTokens,
       policy,
       policyVersion: "shadow-v1",
+      retryCount: 0,
+      retryInputTokens: 0,
+      retryOutputTokens: 0,
       reason:
         observedInputTokens >= minimumTokens
           ? "candidate-scope-observed"
@@ -194,7 +257,7 @@ class RequestObservation {
     responseBytes: number,
     usage?: ProviderUsage,
   ): void {
-    const inputTokens = usage?.inputTokens ?? this.#inputEstimate;
+    const inputTokens = usage?.inputTokens ?? this.#forwardedInputEstimate;
     const outputTokens = usage?.outputTokens ?? estimateTokens(responseBytes);
     this.emit("attempt.usage", {
       inputTokens,

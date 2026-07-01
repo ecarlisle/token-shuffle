@@ -99,7 +99,7 @@ events; request details expose the contributing lifecycle; cache reads remain
 separate from literal token reduction; and automated browser coverage follows
 an overview value into redacted structural replay.
 
-## v0.3 — First safe transforms
+## v0.3 — First safe transforms (released 2026-07-01)
 
 - Opt-in deterministic tool-output and exact-redundancy policies chosen from
   v0.1 data.
@@ -110,6 +110,12 @@ an overview value into redacted structural replay.
 
 Exit: at least one transform shows repeatable net reduction without regression
 on the accepted fixture corpus.
+
+Exit evidence: deterministic fixtures preserve user/assistant content, tool-call
+identity, non-repeated lines, and counted repetition while producing positive
+net reduction. Oversized policy inputs and the kill switch preserve the original
+request. Protocol tests prove observe-mode byte fidelity remains unchanged and
+optimize mode records final-boundary impact without retries.
 
 ## v0.4 — Conversation compaction
 

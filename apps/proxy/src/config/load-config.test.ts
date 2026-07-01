@@ -53,6 +53,32 @@ describe("parseConfig", () => {
     expect(config.upstream.baseUrl.href).toBe("https://api.example.test/v1/");
     expect(config.limits.requestBodyBytes).toBe(16 * 1024 * 1024);
     expect(config.storage.retainRawContent).toBe(false);
+    expect(config.policies).toEqual({
+      killSwitch: false,
+      toolOutput: {
+        enabled: false,
+        collapseRepeatedLinesAfter: 3,
+        maximumInputCharacters: 64 * 1024,
+      },
+      exactRedundancy: { enabled: false },
+    });
+  });
+
+  it("requires active transforms to be explicitly configured", () => {
+    const configured = validConfig
+      .replace('"mode": "observe"', '"mode": "optimize"')
+      .replace(
+        '"server":',
+        '"policies": { "killSwitch": false, "toolOutput": { "enabled": true, "maximumInputCharacters": 4096 }, "exactRedundancy": { "enabled": true } }, "server":',
+      );
+    const config = parseConfig(configured, {
+      LOCAL_TOKEN: "local-secret",
+      PROVIDER_KEY: "provider-secret",
+    });
+
+    expect(config.mode).toBe("optimize");
+    expect(config.policies?.toolOutput.enabled).toBe(true);
+    expect(config.policies?.exactRedundancy.enabled).toBe(true);
   });
 
   it("rejects unknown keys and missing environment variables", () => {

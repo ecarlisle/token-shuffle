@@ -49,10 +49,16 @@ Select a session to see its sequence of requests. Select a request to inspect:
 
 - selected provider and model;
 - measured request structure and token provenance;
-- ordered lifecycle and shadow-policy events;
+- ordered lifecycle, active-policy, and shadow-policy events;
 - baseline, forwarded, and optimization token counts;
 - provider cache reads as a separate category;
 - status and latency.
+
+In v0.3, request replay shows baseline, final forwarded, optimization, and net
+token counts. Session detail aggregates net reduction and policy retry counts so
+a smaller individual request is not silently promoted when session behavior
+regresses. Diagnostics previews each effective policy, its limits, mode, and
+global kill-switch state.
 
 Raw capture is not enabled in v0.2. Structural replay therefore shows
 measurements and lifecycle decisions without reconstructing content that was
