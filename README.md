@@ -11,7 +11,7 @@ evidence separate so users can decide whether an optimization is worthwhile.
 
 ## What works today
 
-The current stable release is **v0.4.0**:
+The current stable release is **v0.4.1**:
 
 - authenticated loopback OpenAI Chat Completions proxying;
 - buffered and SSE forwarding with cancellation, backpressure, and no automatic

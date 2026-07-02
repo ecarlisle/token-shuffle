@@ -12,7 +12,14 @@ For present-tense support status, use the
 
 ## v0.4 — Conversation compaction
 
-**Status:** Released as `v0.4.0` on 2026-07-01
+**Status:** Released as `v0.4.0` on 2026-07-01; patched as `v0.4.1` on
+2026-07-02
+
+v0.4.1 adds explicit DeepSeek-compatible `developer`-to-`system` dispatch
+normalization, repairs clean-checkout workspace package resolution, moves
+SQLite initialization to checked-in transactional migrations, and reconciles
+the repository documentation with the implemented v0.4 boundary. The default
+provider path remains byte-preserving.
 
 v0.4 adds an explicitly enabled deterministic old-turn compactor:
 

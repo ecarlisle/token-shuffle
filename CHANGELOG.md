@@ -4,6 +4,8 @@ This project follows Keep a Changelog conventions while it is pre-release.
 
 ## Unreleased
 
+## 0.4.1 - 2026-07-02
+
 ### Fixed
 
 - DeepSeek-compatible upstreams can explicitly map unsupported OpenAI
@@ -12,6 +14,13 @@ This project follows Keep a Changelog conventions while it is pre-release.
 - Clean workspace checkouts now build `@token-shuffle/core` before proxy
   typechecking and resolve its explicit JavaScript and declaration entry points.
 - CI now verifies the full frozen-install, check, build, and test sequence.
+
+### Changed
+
+- SQLite schema initialization now uses ordered, checked-in transactional
+  migrations and preserves existing v0.4 event databases.
+- Repository navigation, capability claims, request-flow documentation, and
+  contributor guidance now reflect the completed v0.4 implementation.
 
 ## 0.4.0 - 2026-07-01
 

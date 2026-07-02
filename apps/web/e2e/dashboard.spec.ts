@@ -60,7 +60,7 @@ test.beforeEach(async ({ page }) => {
         system: {
           mode: "observe",
           persistence: { degraded: false, droppedEvents: 0 },
-          version: "0.4.0",
+          version: "0.4.1",
         },
       }),
     }),
@@ -124,7 +124,7 @@ test.beforeEach(async ({ page }) => {
       contentType: "application/json",
       body: JSON.stringify({
         mode: "optimize",
-        version: "0.4.0",
+        version: "0.4.1",
         phase: "v0.4",
         server: { host: "127.0.0.1", port: 3210 },
         storage: {

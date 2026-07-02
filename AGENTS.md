@@ -21,7 +21,7 @@ Optimize for trustworthiness before feature breadth:
 
 ## Current status
 
-The stable release is **v0.4.0**. **v0.5 is planned but not yet implemented.**
+The stable release is **v0.4.1**. **v0.5 is planned but not yet implemented.**
 
 - The executable exposes authenticated status and buffered/streaming
   `POST /v1/chat/completions` forwarding.

@@ -14,7 +14,7 @@ client, provider, field, or model works.
 
 ## Current status
 
-Token Shuffle v0.4.0 has a contract-tested buffered and SSE implementation.
+Token Shuffle v0.4.1 has a contract-tested buffered and SSE implementation.
 OpenCode 1.17.11 has completed live traffic through OpenCode Zen with
 `deepseek-v4-flash-free`. Pi 0.80.3 subsequently completed a live proxied test
 through the same upstream/model. The event ledger increased from eight to eleven

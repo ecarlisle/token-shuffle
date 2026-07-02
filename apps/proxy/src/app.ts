@@ -169,7 +169,7 @@ export function buildApp(
       persistence: resilientEventSink.health,
       ready: true,
       streaming: true,
-      version: "0.4.0",
+      version: "0.4.1",
     }),
   );
 
@@ -274,7 +274,7 @@ export function buildApp(
         system: {
           mode: config.mode,
           persistence: resilientEventSink.health,
-          version: "0.4.0",
+          version: "0.4.1",
         },
       };
     },
@@ -354,7 +354,7 @@ export function buildApp(
       reply.header("cache-control", "no-store");
       return {
         mode: config.mode,
-        version: "0.4.0",
+        version: "0.4.1",
         phase: "v0.4",
         server: {
           host: config.server.host,

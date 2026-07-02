@@ -17,7 +17,7 @@ combinations.
 - **Deferred:** intentionally outside the active roadmap gate.
 - **Speculative:** possible later work without an accepted delivery commitment.
 
-## Current stable release: v0.4.0
+## Current stable release: v0.4.1
 
 | Capability | Status | Introduced | Validation | Notes |
 | --- | --- | --- | --- | --- |

@@ -1,6 +1,6 @@
 {
   "name": "token-shuffle",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "description": "A local, observable inference proxy for reducing agent context safely.",
   "packageManager": "pnpm@11.7.0",
