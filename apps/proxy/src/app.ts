@@ -85,6 +85,7 @@ export function buildApp(
     eventSink,
     config.mode,
     config.policies,
+    config.storage.contentFingerprintKey ?? config.auth.accessToken,
   );
   const shutdownController = new AbortController();
   const adminSessions = new AdminSessionManager(config.storage.path);
@@ -318,7 +319,7 @@ export function buildApp(
     "/api/dashboard/compaction/:fingerprint/source",
     { preHandler: authenticateDashboard },
     async (request, reply) => {
-      if (!/^fnv1a-[0-9a-f]{8}$/.test(request.params.fingerprint)) {
+      if (!/^hmac-sha256-[0-9a-f]{64}$/.test(request.params.fingerprint)) {
         sendDashboardError(
           reply,
           400,

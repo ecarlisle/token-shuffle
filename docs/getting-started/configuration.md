@@ -48,6 +48,9 @@ active default. In a repository checkout, run
   "storage": {
     "retainRawContent": false,
     "path": "/path/to/token-shuffle-events.sqlite",
+    "contentFingerprintKey": {
+      "fromEnv": "TOKEN_SHUFFLE_FINGERPRINT_KEY"
+    },
     "structuralRetentionDays": 30,
     "errorRetentionDays": 14
   },
@@ -146,7 +149,7 @@ proxy after changing policy configuration.
 Conversation compaction applies only after `minimumMessages` is reached, only
 when its source is within `maximumSourceCharacters`, and only when the complete
 prepared request is smaller. Each summary contains source indexes, a
-deterministic fingerprint, version, and uncertainty statement.
+keyed HMAC-SHA-256 fingerprint, version, and uncertainty statement.
 
 When compaction applies, v0.4 keeps the omitted source in a bounded memory-only
 recovery snapshot for eight hours. It is available only through the separately
@@ -168,6 +171,9 @@ and dashboard URLs.
 The local access token and upstream API key are different credentials:
 
 - `TOKEN_SHUFFLE_ACCESS_TOKEN` authenticates agents to the local proxy.
+- `TOKEN_SHUFFLE_FINGERPRINT_KEY` scopes content identities used by compaction
+  and retrieval. Keep this independent random value stable across restarts;
+  Token Shuffle never persists or logs it.
 - `UPSTREAM_API_KEY` authenticates Token Shuffle to the provider.
 
 Only environment-variable references belong in the configuration. Missing

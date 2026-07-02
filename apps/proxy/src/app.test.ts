@@ -480,7 +480,7 @@ describe("buffered Chat Completions forwarding", () => {
       expect.objectContaining({
         applied: true,
         optimizationTokens: 0,
-        sourceFingerprint: expect.stringMatching(/^fnv1a-/),
+        sourceFingerprint: expect.stringMatching(/^hmac-sha256-[0-9a-f]{64}$/),
         summaryVersion: "deterministic-v1",
       }),
     );
@@ -497,7 +497,9 @@ describe("buffered Chat Completions forwarding", () => {
         event.type === "policy.applied" &&
         event.data.policy === "conversation-compaction",
     )?.data.sourceFingerprint;
-    expect(fingerprint).toEqual(expect.stringMatching(/^fnv1a-/));
+    expect(fingerprint).toEqual(
+      expect.stringMatching(/^hmac-sha256-[0-9a-f]{64}$/),
+    );
     const bootstrap = await createDashboardBootstrap(config.storage.path);
     const exchange = await app.inject({
       method: "POST",

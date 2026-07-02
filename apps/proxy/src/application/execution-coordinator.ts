@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
 import { performance } from "node:perf_hooks";
 
 import {
@@ -62,6 +62,7 @@ export class ExecutionCoordinator {
     private readonly eventSink: EventSink = new NoopEventSink(),
     private readonly mode: "observe" | "optimize" = "observe",
     private readonly policies: ContextPolicyConfig = DEFAULT_POLICIES,
+    private readonly contentFingerprintKey?: string,
   ) {}
 
   public async execute(
@@ -73,9 +74,19 @@ export class ExecutionCoordinator {
       return undefined;
     }
 
+    const fingerprintKey = this.contentFingerprintKey;
     const preparation =
       this.mode === "optimize"
-        ? applyContextPolicies(body.parsed, this.policies)
+        ? applyContextPolicies(
+            body.parsed,
+            this.policies,
+            fingerprintKey === undefined
+              ? undefined
+              : (source: string) =>
+                  `hmac-sha256-${createHmac("sha256", fingerprintKey)
+                    .update(source)
+                    .digest("hex")}`,
+          )
         : { value: body.parsed, changed: false, decisions: [] };
     const preparedBody: RawJsonBody = preparation.changed
       ? {

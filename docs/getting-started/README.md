@@ -36,20 +36,22 @@ For v0.1 you will need:
 
 ## 1. Create local credentials
 
-Create two environment variables in the shell or service environment that will
+Create three environment variables in the shell or service environment that will
 start Token Shuffle:
 
 ```sh
 export TOKEN_SHUFFLE_ACCESS_TOKEN="generate-a-long-random-value"
+export TOKEN_SHUFFLE_FINGERPRINT_KEY="generate-an-independent-random-value"
 export UPSTREAM_API_KEY="your-provider-api-key"
 ```
 
 `TOKEN_SHUFFLE_ACCESS_TOKEN` protects the local proxy from other processes or
-web pages that try to call loopback services. `UPSTREAM_API_KEY` is sent only to
-the configured inference provider.
+web pages that try to call loopback services. `TOKEN_SHUFFLE_FINGERPRINT_KEY`
+scopes local content identities and is never persisted or sent upstream.
+`UPSTREAM_API_KEY` is sent only to the configured inference provider.
 
 Use a password manager or cryptographically secure random generator for the
-local token. Do not commit either value or place the upstream key in an agent
+local secrets. Do not commit any value or place the upstream key in an agent
 configuration.
 
 ## 2. Configure Token Shuffle
@@ -106,6 +108,7 @@ two referenced secrets, build, and use the repository scripts:
 ```sh
 cp config.example.jsonc config.local.jsonc
 export TOKEN_SHUFFLE_ACCESS_TOKEN="generate-a-long-random-value"
+export TOKEN_SHUFFLE_FINGERPRINT_KEY="generate-an-independent-random-value"
 export UPSTREAM_API_KEY="your-provider-api-key"
 pnpm install
 pnpm build

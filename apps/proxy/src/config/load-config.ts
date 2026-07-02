@@ -109,6 +109,14 @@ export function parseConfig(
     storage: {
       retainRawContent: false,
       path: config.storage?.path ?? join(dirname(defaultConfigPath()), "events.sqlite"),
+      ...(config.storage?.contentFingerprintKey === undefined
+        ? {}
+        : {
+            contentFingerprintKey: resolveSecret(
+              config.storage.contentFingerprintKey,
+              environment,
+            ),
+          }),
       structuralRetentionDays: config.storage?.structuralRetentionDays ?? 30,
       errorRetentionDays: config.storage?.errorRetentionDays ?? 14,
     },

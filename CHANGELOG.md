@@ -4,6 +4,11 @@ This project follows Keep a Changelog conventions while it is pre-release.
 
 ## Unreleased
 
+### Security
+
+- Replaced persisted unkeyed compaction fingerprints with installation-scoped
+  HMAC-SHA-256 identities.
+
 ## 0.4.1 - 2026-07-02
 
 ### Fixed

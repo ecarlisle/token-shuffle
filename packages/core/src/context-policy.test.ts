@@ -21,6 +21,13 @@ const active: ContextPolicyConfig = {
     maximumSourceCharacters: 256_000,
   },
 };
+const fingerprintSource = (source: string): string => {
+  const checksum = [...source].reduce(
+    (total, character) => (total + character.charCodeAt(0)) >>> 0,
+    0,
+  );
+  return `hmac-sha256-${checksum.toString(16).padStart(64, "0")}`;
+};
 
 describe("context policies", () => {
   it("compacts deterministic tool noise and removes only consecutive identical tool results", () => {
@@ -41,6 +48,7 @@ describe("context policies", () => {
         ],
       },
       active,
+      fingerprintSource,
     );
 
     expect(result.changed).toBe(true);
@@ -95,6 +103,7 @@ describe("context policies", () => {
           maximumSourceCharacters: 100_000,
         },
       },
+      fingerprintSource,
     );
     const forwarded = (result.value as { messages: Array<{ role: string; content: string }> })
       .messages;
@@ -146,10 +155,10 @@ describe("context policies", () => {
         ...original.messages.slice(1),
       ],
     };
-    const first = applyContextPolicies(original, config).decisions[2];
-    const second = applyContextPolicies(changed, config).decisions[2];
+    const first = applyContextPolicies(original, config, fingerprintSource).decisions[2];
+    const second = applyContextPolicies(changed, config, fingerprintSource).decisions[2];
 
-    expect(first?.sourceFingerprint).toMatch(/^fnv1a-/);
+    expect(first?.sourceFingerprint).toMatch(/^hmac-sha256-/);
     expect(second?.sourceFingerprint).not.toBe(first?.sourceFingerprint);
   });
 
@@ -165,6 +174,29 @@ describe("context policies", () => {
     ).toBe(true);
     expect(unchanged.value).toBe(input);
     expect(unchanged.changed).toBe(false);
+  });
+
+  it("fails open when compaction has no scoped fingerprint function", () => {
+    const input = {
+      messages: [
+        { role: "user", content: `Must keep tests.\n${"background ".repeat(100)}` },
+        { role: "assistant", content: `Use TypeScript.\n${"background ".repeat(100)}` },
+        { role: "user", content: "active" },
+        { role: "assistant", content: "active response" },
+      ],
+    };
+    const result = applyContextPolicies(input, {
+      ...active,
+      conversationCompaction: {
+        enabled: true,
+        minimumMessages: 4,
+        activeWindowMessages: 2,
+        maximumSourceCharacters: 100_000,
+      },
+    });
+
+    expect(result.value).toBe(input);
+    expect(result.decisions[2]?.reason).toBe("fingerprint-unavailable");
   });
 
   it("fails open to the original output when the policy input limit is exceeded", () => {

@@ -26,6 +26,9 @@
   "storage": {
     "retainRawContent": false,
     "path": "./token-shuffle-events.sqlite",
+    "contentFingerprintKey": {
+      "fromEnv": "TOKEN_SHUFFLE_FINGERPRINT_KEY"
+    },
     "structuralRetentionDays": 30,
     "errorRetentionDays": 14
   },

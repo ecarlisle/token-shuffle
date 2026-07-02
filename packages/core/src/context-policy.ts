@@ -43,9 +43,12 @@ export interface PolicyReplayResult extends ContextPolicyResult {
   readonly impact: TokenImpact;
 }
 
+export type ContentFingerprint = (source: string) => string;
+
 export function applyContextPolicies(
   value: unknown,
   config: ContextPolicyConfig,
+  fingerprintSource?: ContentFingerprint,
 ): ContextPolicyResult {
   if (config.killSwitch) {
     return {
@@ -77,6 +80,7 @@ export function applyContextPolicies(
   const compaction = applyConversationCompactionPolicy(
     redundancy.messages,
     config.conversationCompaction,
+    fingerprintSource,
   );
   const changed = toolOutput.changed || redundancy.changed || compaction.changed;
   return {
@@ -89,8 +93,9 @@ export function applyContextPolicies(
 export function replayContextPolicies(
   value: unknown,
   config: ContextPolicyConfig,
+  fingerprintSource?: ContentFingerprint,
 ): PolicyReplayResult {
-  const result = applyContextPolicies(value, config);
+  const result = applyContextPolicies(value, config, fingerprintSource);
   const baselineInputTokens = estimateJsonTokens(value);
   const forwardedInputTokens = estimateJsonTokens(result.value);
   return {
@@ -205,6 +210,7 @@ function compactToolOutput(
 function applyConversationCompactionPolicy(
   messages: readonly unknown[],
   config: ContextPolicyConfig["conversationCompaction"],
+  fingerprintSource?: ContentFingerprint,
 ): {
   readonly messages: readonly unknown[];
   readonly changed: boolean;
@@ -256,7 +262,18 @@ function applyConversationCompactionPolicy(
       decision: disabledDecision("conversation-compaction", "source-limit-exceeded"),
     };
   }
-  const summary = createStructuredSummary(oldMessages, oldIndexes);
+  if (fingerprintSource === undefined) {
+    return {
+      messages,
+      changed: false,
+      decision: disabledDecision("conversation-compaction", "fingerprint-unavailable"),
+    };
+  }
+  const summary = createStructuredSummary(
+    oldMessages,
+    oldIndexes,
+    fingerprintSource(sourceJson),
+  );
   const summaryMessage = {
     role: "developer",
     content: [
@@ -319,6 +336,7 @@ interface StructuredSummary {
 function createStructuredSummary(
   messages: readonly unknown[],
   indexes: readonly number[],
+  sourceFingerprint: string,
 ): StructuredSummary {
   const entries = messages.flatMap((message, offset) => {
     if (!isRecord(message) || typeof message.content !== "string") return [];
@@ -340,7 +358,7 @@ function createStructuredSummary(
       start: indexes[0] ?? 0,
       end: indexes.at(-1) ?? 0,
     },
-    sourceFingerprint: fingerprint(JSON.stringify(messages)),
+    sourceFingerprint,
     objectives: firstUser === undefined ? [] : [label(firstUser)],
     constraints: matching(/\b(must|should|required|only|never|do not|don't|cannot)\b/i),
     filesAndSymbols: matching(
@@ -352,15 +370,6 @@ function createStructuredSummary(
     openQuestions: unique(entries.filter((entry) => entry.line.endsWith("?")).map(label)),
     uncertainty: "Non-matching prose was omitted; active window remains verbatim.",
   };
-}
-
-function fingerprint(value: string): string {
-  let hash = 0x811c9dc5;
-  for (const character of new TextEncoder().encode(value)) {
-    hash ^= character;
-    hash = Math.imul(hash, 0x01000193);
-  }
-  return `fnv1a-${(hash >>> 0).toString(16).padStart(8, "0")}`;
 }
 
 function isDuplicateToolResult(previous: unknown, current: unknown): boolean {

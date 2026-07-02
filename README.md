@@ -62,6 +62,7 @@ corepack enable
 pnpm install
 cp config.example.jsonc config.local.jsonc
 export TOKEN_SHUFFLE_ACCESS_TOKEN="generate-a-long-random-value"
+export TOKEN_SHUFFLE_FINGERPRINT_KEY="generate-an-independent-random-value"
 export UPSTREAM_API_KEY="your-provider-api-key"
 pnpm build
 pnpm proxy:start

@@ -91,7 +91,8 @@ test.beforeEach(async ({ page }) => {
           data: {
             policy: "conversation-compaction",
             applied: true,
-            sourceFingerprint: "fnv1a-12345678",
+            sourceFingerprint:
+              "hmac-sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             sourceStart: 1,
             sourceEnd: 8,
             summaryVersion: "deterministic-v1",
@@ -107,12 +108,15 @@ test.beforeEach(async ({ page }) => {
       }),
     }),
   );
-  await page.route("**/api/dashboard/compaction/fnv1a-12345678/source", (route) =>
+  await page.route(
+    "**/api/dashboard/compaction/hmac-sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/source",
+    (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
-        fingerprint: "fnv1a-12345678",
+        fingerprint:
+          "hmac-sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         retention: "memory-only",
         source: [{ role: "user", content: "Must preserve compatibility." }],
       }),

@@ -38,6 +38,7 @@ describe("parseConfig", () => {
       parseConfig(source, {
         TOKEN_SHUFFLE_ACCESS_TOKEN: "local-secret",
         UPSTREAM_API_KEY: "provider-secret",
+        TOKEN_SHUFFLE_FINGERPRINT_KEY: "fingerprint-secret",
       }).configVersion,
     ).toBe(1);
   });

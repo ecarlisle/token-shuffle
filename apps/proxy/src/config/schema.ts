@@ -48,6 +48,7 @@ export const TokenShuffleConfigSchema = Type.Object(
         {
           retainRawContent: Type.Literal(false),
           path: Type.Optional(Type.String({ minLength: 1 })),
+          contentFingerprintKey: Type.Optional(EnvironmentReferenceSchema),
           structuralRetentionDays: Type.Optional(Type.Integer({ minimum: 1 })),
           errorRetentionDays: Type.Optional(Type.Integer({ minimum: 1 })),
         },
@@ -136,6 +137,7 @@ export interface RuntimeConfig {
   readonly storage: {
     readonly retainRawContent: false;
     readonly path: string;
+    readonly contentFingerprintKey?: string;
     readonly structuralRetentionDays: number;
     readonly errorRetentionDays: number;
   };

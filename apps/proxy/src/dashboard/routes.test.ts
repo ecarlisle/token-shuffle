@@ -36,7 +36,8 @@ describe("dashboard routes", () => {
     });
     const compactionSourceWithoutAdmin = await app.inject({
       method: "GET",
-      url: "/api/dashboard/compaction/fnv1a-12345678/source",
+      url:
+        "/api/dashboard/compaction/hmac-sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/source",
     });
     const wrongOrigin = await app.inject({
       method: "POST",

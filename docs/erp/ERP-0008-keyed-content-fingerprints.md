@@ -1,6 +1,6 @@
 # ERP-0008: Replace Unkeyed Content Fingerprints
 
-Status: Accepted
+Status: Completed
 Priority: P0
 Category: Security, Privacy, Architecture
 Origin Review: ERP-0005 architecture consistency audit
@@ -33,5 +33,17 @@ fingerprint.
 
 ## Resolution
 
-Accepted for v0.5 because persistent artifact identity depends on this privacy
-boundary. Implementation pending.
+Completed for v0.5.
+
+- The proxy derives content identities with HMAC-SHA-256 at the application
+  boundary.
+- The key resolves from `storage.contentFingerprintKey`; existing
+  configurations fall back to the separately environment-resolved local access
+  token for backward compatibility.
+- Core receives a fingerprint function and fails open without one; it does not
+  own or persist secret material.
+- Events, structured summaries, recovery routes, and SQLite receive only the
+  `hmac-sha256-<64 hex>` identity.
+- Existing v0.4 FNV events remain readable history, but their memory-only
+  recovery sources cannot survive a restart and the v0.5 recovery route does
+  not accept an FNV identifier.
