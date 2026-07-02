@@ -105,9 +105,10 @@ owns:
 The coordinator depends on interfaces; provider, storage, tokenizer, and cache
 implementations are supplied by the composition root.
 
-In v0.4, the implemented coordinator performs baseline measurement, ordered
+In v0.5, the implemented coordinator performs baseline measurement, ordered
 context policies, one configured provider attempt, cancellation, and event
-emission. Candidate route planning, response-cache lookup, retry, and failover
+emission plus bounded, next-turn retrieval. Candidate route planning,
+response-cache lookup, retry, and failover
 in the list above are planned ownership, not current capabilities.
 
 ## Logical modules
@@ -190,8 +191,8 @@ Owns SQLite migrations and repositories for:
 - dashboard projections;
 - retention deletion.
 
-As of v0.4 only the event repository and retention deletion are implemented.
-Persistent artifacts, summaries, cache records, and durable projections are
+As of v0.5 the event repository, persistent context artifacts, FTS5 index, and
+retention/deletion are implemented. Cache records and durable projections remain
 future storage responsibilities.
 
 Accounting stays in core, replay orchestration stays in the application layer,

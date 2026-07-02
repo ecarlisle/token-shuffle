@@ -75,15 +75,18 @@ replacement/removal policy. Buffered bodies and SSE event payloads are
 preserved; TCP chunk boundaries are not. See the
 [fidelity ADR](decisions/0009-transparent-fidelity-and-compatibility.md).
 
-## Planned externalized context model
+## Externalized context model
 
-Beginning in planned v0.5 work, original context may be stored locally as
-immutable, addressable artifacts.
+In v0.5, explicitly enabled retrieval stores eligible original context locally
+as immutable, addressable artifacts.
 Policies can select exact ranges, retrieve relevant artifacts, or produce
 versioned summaries before constructing the forwarded request. References are
 never assumed to be meaningful to a stateless model: selected content must be
 injected, exposed through a retrieval tool, or backed by explicit provider
-state.
+state. v0.5 uses exact artifact identifiers before SQLite FTS5 lexical matching.
+An explicit `token_shuffle_retrieve("query")` marker in a replayed model turn
+requests bounded context on the next normal client request; it never creates a
+hidden provider retry.
 
 The decision event records source artifact identifiers, policy order, omitted
 ranges, summary versions, count provenance, and the final request-level token
@@ -105,6 +108,10 @@ Default events contain counts, timings, structural metadata, and redacted
 decision explanations. Raw prompts and responses are not
 retained unless a user explicitly enables a bounded replay capture. Provider
 credentials remain in process memory and must never enter events or logs.
+When retrieval is explicitly enabled, eligible original context is separately
+retained as readable artifacts for seven days by default. The dashboard exposes
+this state, and request/session/history deletion removes the associated
+artifacts. See [ADR 0015](decisions/0015-persistent-artifact-privacy.md).
 
 ## Failure policy
 

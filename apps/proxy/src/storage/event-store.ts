@@ -9,6 +9,22 @@ interface WorkerReply {
   readonly error?: string;
 }
 
+export interface ContextArtifact {
+  readonly artifactId: string;
+  readonly requestId: string;
+  readonly sessionId: string;
+  readonly kind: "conversation" | "tool-output" | "file";
+  readonly content: string;
+  readonly createdAt: string;
+}
+
+export interface ArtifactMatch {
+  readonly artifactId: string;
+  readonly kind: ContextArtifact["kind"];
+  readonly content: string;
+  readonly contentBytes: number;
+}
+
 export class SqliteEventStore implements EventSink {
   readonly #worker: Worker;
   readonly #pending = new Map<
@@ -23,11 +39,18 @@ export class SqliteEventStore implements EventSink {
     path: string,
     structuralRetentionDays: number,
     errorRetentionDays: number,
+    artifactRetentionDays: number,
     migrations: readonly string[],
   ) {
     this.#worker = new Worker(WORKER_SOURCE, {
       eval: true,
-      workerData: { path, structuralRetentionDays, errorRetentionDays, migrations },
+      workerData: {
+        path,
+        structuralRetentionDays,
+        errorRetentionDays,
+        artifactRetentionDays,
+        migrations,
+      },
     });
     this.#worker.on("message", (reply: WorkerReply) => this.#receive(reply));
     this.#worker.on("error", (error) => this.#rejectAll(error));
@@ -42,12 +65,14 @@ export class SqliteEventStore implements EventSink {
     readonly path: string;
     readonly structuralRetentionDays: number;
     readonly errorRetentionDays: number;
+    readonly artifactRetentionDays?: number;
   }): Promise<SqliteEventStore> {
     const migrations = await loadMigrations();
     const store = new SqliteEventStore(
       options.path,
       options.structuralRetentionDays,
       options.errorRetentionDays,
+      options.artifactRetentionDays ?? 7,
       migrations,
     );
     await store.#request("initialize");
@@ -60,6 +85,22 @@ export class SqliteEventStore implements EventSink {
 
   public async list(): Promise<ObservationEvent[]> {
     return (await this.#request("list")) as ObservationEvent[];
+  }
+
+  public async putArtifact(artifact: ContextArtifact): Promise<void> {
+    await this.#request("putArtifact", artifact);
+  }
+
+  public async searchArtifacts(
+    sessionId: string,
+    query: string,
+    limit: number,
+  ): Promise<ArtifactMatch[]> {
+    return (await this.#request("searchArtifacts", {
+      sessionId,
+      query,
+      limit,
+    })) as ArtifactMatch[];
   }
 
   public async deleteRequest(requestId: string): Promise<number> {
@@ -81,10 +122,12 @@ export class SqliteEventStore implements EventSink {
   public async diagnostics(): Promise<{
     readonly sqliteVersion: string;
     readonly eventCount: number;
+    readonly artifactCount: number;
   }> {
     return (await this.#request("diagnostics")) as {
       sqliteVersion: string;
       eventCount: number;
+      artifactCount: number;
     };
   }
 
@@ -129,6 +172,10 @@ async function loadMigrations(): Promise<readonly string[]> {
   return [
     await readFile(
       new URL("./migrations/0001-observation-events.sql", import.meta.url),
+      "utf8",
+    ),
+    await readFile(
+      new URL("./migrations/0002-context-artifacts.sql", import.meta.url),
       "utf8",
     ),
   ];
@@ -195,25 +242,101 @@ parentPort.on("message", ({ id, type, payload }) => {
       result = database.prepare(
         "SELECT event_json FROM observation_events ORDER BY occurred_at, rowid"
       ).all().map(row => JSON.parse(row.event_json));
+    } else if (type === "putArtifact") {
+      const expiresAt = new Date(
+        Date.parse(payload.createdAt) + workerData.artifactRetentionDays * 86400000
+      ).toISOString();
+      database.prepare(\`
+        INSERT INTO context_artifacts
+          (artifact_id, request_id, session_id, artifact_kind, created_at, expires_at,
+           content, content_bytes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(artifact_id) DO UPDATE SET
+          request_id = excluded.request_id,
+          session_id = excluded.session_id,
+          artifact_kind = excluded.artifact_kind,
+          created_at = excluded.created_at,
+          expires_at = excluded.expires_at,
+          content = excluded.content,
+          content_bytes = excluded.content_bytes
+      \`).run(
+        payload.artifactId,
+        payload.requestId,
+        payload.sessionId,
+        payload.kind,
+        payload.createdAt,
+        expiresAt,
+        payload.content,
+        Buffer.byteLength(payload.content)
+      );
+    } else if (type === "searchArtifacts") {
+      const exact = database.prepare(\`
+        SELECT artifact_id AS artifactId, artifact_kind AS kind, content,
+               content_bytes AS contentBytes
+        FROM context_artifacts
+        WHERE session_id = ? AND artifact_id = ? AND expires_at > ?
+        LIMIT 1
+      \`).all(payload.sessionId, payload.query, new Date().toISOString());
+      if (exact.length > 0) {
+        result = exact;
+      } else {
+        const tokens = String(payload.query).match(/[\\p{L}\\p{N}_./-]+/gu) || [];
+        const match = [...new Set(tokens)]
+          .slice(0, 12)
+          .map(token => '"' + token.replaceAll('"', '""') + '"')
+          .join(" OR ");
+        result = match.length === 0 ? [] : database.prepare(\`
+          SELECT a.artifact_id AS artifactId, a.artifact_kind AS kind, a.content,
+                 a.content_bytes AS contentBytes
+          FROM context_artifacts_fts
+          JOIN context_artifacts a ON a.rowid = context_artifacts_fts.rowid
+          WHERE context_artifacts_fts MATCH ?
+            AND a.session_id = ?
+            AND a.expires_at > ?
+          ORDER BY bm25(context_artifacts_fts), a.created_at DESC
+          LIMIT ?
+        \`).all(match, payload.sessionId, new Date().toISOString(), payload.limit);
+      }
     } else if (type === "deleteRequest") {
-      result = Number(database.prepare(
+      const eventChanges = Number(database.prepare(
         "DELETE FROM observation_events WHERE request_id = ?"
       ).run(payload).changes);
+      const artifactChanges = Number(database.prepare(
+        "DELETE FROM context_artifacts WHERE request_id = ?"
+      ).run(payload).changes);
+      result = eventChanges;
     } else if (type === "deleteSession") {
-      result = Number(database.prepare(
+      const eventChanges = Number(database.prepare(
         "DELETE FROM observation_events WHERE session_id = ?"
       ).run(payload).changes);
+      const artifactChanges = Number(database.prepare(
+        "DELETE FROM context_artifacts WHERE session_id = ?"
+      ).run(payload).changes);
+      result = eventChanges;
     } else if (type === "deleteAll") {
-      result = Number(database.prepare("DELETE FROM observation_events").run().changes);
+      const eventChanges = Number(
+        database.prepare("DELETE FROM observation_events").run().changes
+      );
+      const artifactChanges = Number(
+        database.prepare("DELETE FROM context_artifacts").run().changes
+      );
+      result = eventChanges;
     } else if (type === "prune") {
-      result = Number(database.prepare(
+      const eventChanges = Number(database.prepare(
         "DELETE FROM observation_events WHERE expires_at <= ?"
       ).run(payload).changes);
+      const artifactChanges = Number(database.prepare(
+        "DELETE FROM context_artifacts WHERE expires_at <= ?"
+      ).run(payload).changes);
+      result = eventChanges + artifactChanges;
     } else if (type === "diagnostics") {
       result = {
         sqliteVersion: database.prepare("SELECT sqlite_version() AS version").get().version,
         eventCount: Number(database.prepare(
           "SELECT COUNT(*) AS count FROM observation_events"
+        ).get().count),
+        artifactCount: Number(database.prepare(
+          "SELECT COUNT(*) AS count FROM context_artifacts"
         ).get().count)
       };
     } else if (type === "close") {

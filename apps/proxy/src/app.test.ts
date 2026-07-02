@@ -324,6 +324,183 @@ describe("buffered Chat Completions forwarding", () => {
     });
   });
 
+  it("injects session-scoped retrieval on the next client turn without retrying", async () => {
+    const providerBodies: Buffer[] = [];
+    const baseUrl = await startProvider((request, response) => {
+      const chunks: Buffer[] = [];
+      request.on("data", (chunk: Buffer) => chunks.push(chunk));
+      request.on("end", () => {
+        providerBodies.push(Buffer.concat(chunks));
+        response.end('{"choices":[{"message":{"role":"assistant","content":"done"}}]}');
+      });
+    });
+    const eventSink = new RecordingEventSink();
+    const searches: Array<{ sessionId: string; query: string; limit: number }> = [];
+    const eventReader = {
+      list: async (): Promise<ObservationEvent[]> => [],
+      searchArtifacts: async (sessionId: string, query: string, limit: number) => {
+        searches.push({ sessionId, query, limit });
+        return [
+          {
+            artifactId:
+              "hmac-sha256-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            kind: "file" as const,
+            content: "src/auth/session.ts validates bootstrap tokens",
+            contentBytes: 47,
+          },
+        ];
+      },
+    };
+    const config: RuntimeConfig = {
+      ...createConfig(baseUrl),
+      mode: "optimize",
+      policies: {
+        killSwitch: false,
+        toolOutput: {
+          enabled: false,
+          collapseRepeatedLinesAfter: 3,
+          maximumInputCharacters: 65_536,
+        },
+        exactRedundancy: { enabled: false },
+        conversationCompaction: {
+          enabled: false,
+          minimumMessages: 12,
+          activeWindowMessages: 6,
+          maximumSourceCharacters: 256_000,
+        },
+        retrieval: {
+          enabled: true,
+          maximumResults: 3,
+          maximumInjectedCharacters: 24_000,
+        },
+      },
+    };
+    const app = buildApp(config, { eventSink, eventReader });
+    apps.push(app);
+    const inbound = {
+      model: "test-model",
+      messages: [
+        {
+          role: "assistant",
+          content: 'I need token_shuffle_retrieve("src/auth/session.ts bootstrap")',
+        },
+        { role: "user", content: "Continue." },
+      ],
+    };
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/chat/completions",
+      headers: {
+        ...authorizedHeaders(),
+        "x-token-shuffle-session-id": "retrieval-session",
+      },
+      payload: JSON.stringify(inbound),
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(searches).toEqual([
+      {
+        sessionId: "retrieval-session",
+        query: "src/auth/session.ts bootstrap",
+        limit: 3,
+      },
+    ]);
+    expect(providerBodies).toHaveLength(1);
+    const forwarded = JSON.parse(providerBodies[0]?.toString("utf8") ?? "{}") as {
+      messages: Array<{ role: string; content: string }>;
+    };
+    expect(forwarded.messages).toContainEqual(
+      expect.objectContaining({
+        role: "developer",
+        content: expect.stringContaining(
+          "src/auth/session.ts validates bootstrap tokens",
+        ),
+      }),
+    );
+    expect(forwarded.messages).toContainEqual(inbound.messages[0]);
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(
+      eventSink.events.find((event) => event.type === "retrieval.completed"),
+    ).toMatchObject({
+      data: {
+        hit: true,
+        resultCount: 1,
+        retryCount: 0,
+        provenance: "estimate",
+      },
+    });
+    expect(
+      eventSink.events.filter((event) => event.type === "attempt.started"),
+    ).toHaveLength(1);
+  });
+
+  it("fails open without retry when artifact search fails", async () => {
+    let receivedBody = Buffer.alloc(0);
+    let providerCalls = 0;
+    const baseUrl = await startProvider((request, response) => {
+      providerCalls += 1;
+      const chunks: Buffer[] = [];
+      request.on("data", (chunk: Buffer) => chunks.push(chunk));
+      request.on("end", () => {
+        receivedBody = Buffer.concat(chunks);
+        response.end('{"choices":[]}');
+      });
+    });
+    const eventSink = new RecordingEventSink();
+    const eventReader = {
+      list: async (): Promise<ObservationEvent[]> => [],
+      searchArtifacts: async (): Promise<never> => {
+        throw new Error("synthetic storage failure");
+      },
+    };
+    const config: RuntimeConfig = {
+      ...createConfig(baseUrl),
+      mode: "optimize",
+      policies: {
+        killSwitch: false,
+        toolOutput: {
+          enabled: false,
+          collapseRepeatedLinesAfter: 3,
+          maximumInputCharacters: 65_536,
+        },
+        exactRedundancy: { enabled: false },
+        conversationCompaction: {
+          enabled: false,
+          minimumMessages: 12,
+          activeWindowMessages: 6,
+          maximumSourceCharacters: 256_000,
+        },
+        retrieval: {
+          enabled: true,
+          maximumResults: 3,
+          maximumInjectedCharacters: 24_000,
+        },
+      },
+    };
+    const app = buildApp(config, { eventSink, eventReader });
+    apps.push(app);
+    const rawBody =
+      '{"model":"test","messages":[{"role":"assistant","content":"token_shuffle_retrieve(\\\"missing\\\")"},{"role":"user","content":"continue"}],"unknown":true}';
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/chat/completions",
+      headers: authorizedHeaders(),
+      payload: rawBody,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(providerCalls).toBe(1);
+    expect(receivedBody).toEqual(Buffer.from(rawBody));
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(
+      eventSink.events.find((event) => event.type === "retrieval.completed"),
+    ).toMatchObject({
+      data: { failed: true, hit: false, resultCount: 0, retryCount: 0 },
+    });
+  });
+
   it("applies explicitly enabled deterministic policies and records final-boundary impact", async () => {
     let receivedBody = Buffer.alloc(0);
     const baseUrl = await startProvider((request, response) => {
@@ -420,6 +597,34 @@ describe("buffered Chat Completions forwarding", () => {
       });
     });
     const eventSink = new RecordingEventSink();
+    const artifacts: Array<{
+      artifactId: string;
+      requestId: string;
+      sessionId: string;
+      kind: "conversation" | "tool-output" | "file";
+      content: string;
+      createdAt: string;
+    }> = [];
+    const eventReader = {
+      list: async (): Promise<ObservationEvent[]> => [],
+      putArtifact: async (artifact: (typeof artifacts)[number]) => {
+        artifacts.push(artifact);
+      },
+      searchArtifacts: async (sessionId: string, query: string, limit: number) =>
+        artifacts
+          .filter(
+            (artifact) =>
+              artifact.sessionId === sessionId &&
+              (artifact.artifactId === query || artifact.content.includes(query)),
+          )
+          .slice(0, limit)
+          .map((artifact) => ({
+            artifactId: artifact.artifactId,
+            kind: artifact.kind,
+            content: artifact.content,
+            contentBytes: Buffer.byteLength(artifact.content),
+          })),
+    };
     const config: RuntimeConfig = {
       ...createConfig(baseUrl),
       mode: "optimize",
@@ -437,9 +642,14 @@ describe("buffered Chat Completions forwarding", () => {
           activeWindowMessages: 2,
           maximumSourceCharacters: 256_000,
         },
+        retrieval: {
+          enabled: true,
+          maximumResults: 3,
+          maximumInjectedCharacters: 512,
+        },
       },
     };
-    const app = buildApp(config, { eventSink });
+    const app = buildApp(config, { eventSink, eventReader });
     apps.push(app);
     const messages = [
       { role: "system", content: "Always preserve compatibility." },
@@ -453,7 +663,10 @@ describe("buffered Chat Completions forwarding", () => {
     const response = await app.inject({
       method: "POST",
       url: "/v1/chat/completions",
-      headers: authorizedHeaders(),
+      headers: {
+        ...authorizedHeaders(),
+        "x-token-shuffle-session-id": "compaction-session",
+      },
       payload: JSON.stringify({ model: "test", messages }),
     });
     await new Promise((resolve) => setImmediate(resolve));
@@ -500,6 +713,65 @@ describe("buffered Chat Completions forwarding", () => {
     expect(fingerprint).toEqual(
       expect.stringMatching(/^hmac-sha256-[0-9a-f]{64}$/),
     );
+    expect(artifacts).toEqual([
+      expect.objectContaining({
+        artifactId: fingerprint,
+        kind: "conversation",
+        content: expect.stringContaining("Must retain tests"),
+      }),
+    ]);
+    expect(
+      eventSink.events.find((event) => event.type === "artifact.externalized"),
+    ).toMatchObject({
+      data: {
+        artifactId: fingerprint,
+        artifactKind: "conversation",
+      },
+    });
+    const retrievalResponse = await app.inject({
+      method: "POST",
+      url: "/v1/chat/completions",
+      headers: {
+        ...authorizedHeaders(),
+        "x-token-shuffle-session-id": "compaction-session",
+      },
+      payload: JSON.stringify({
+        model: "test",
+        messages: [
+          {
+            role: "assistant",
+            content: `token_shuffle_retrieve("${String(fingerprint)}")`,
+          },
+          { role: "user", content: "Use the requested context and continue." },
+        ],
+      }),
+    });
+    expect(retrievalResponse.statusCode).toBe(200);
+    expect(providerCalls).toBe(2);
+    await new Promise((resolve) => setImmediate(resolve));
+    const sessionMeasurements = eventSink.events.filter(
+      (event) =>
+        event.type === "request.measured" &&
+        event.session.id === "compaction-session",
+    );
+    const sessionNet = sessionMeasurements.reduce(
+      (total, event) =>
+        total +
+        Number(event.data.baselineInputTokens ?? 0) -
+        Number(event.data.forwardedInputTokens ?? 0),
+      0,
+    );
+    expect(sessionMeasurements).toHaveLength(2);
+    expect(sessionNet).toBeGreaterThan(0);
+    expect(
+      eventSink.events.find(
+        (event) =>
+          event.type === "retrieval.completed" &&
+          event.session.id === "compaction-session",
+      ),
+    ).toMatchObject({
+      data: { hit: true, retryCount: 0, injectedCharacters: 512 },
+    });
     const bootstrap = await createDashboardBootstrap(config.storage.path);
     const exchange = await app.inject({
       method: "POST",

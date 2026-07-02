@@ -105,20 +105,21 @@ Client disconnect aborts upstream work. Process shutdown aborts active requests,
 waits for observation chains, closes the provider and SQLite worker, and clears
 memory-only compaction recovery. It never restarts or retries an inference.
 
-## Planned v0.5 retrieval flow
-
-The following is **planned, not implemented in v0.4**:
+## v0.5 retrieval flow
 
 ```text
 eligible original context -> immutable local artifact
 request identifiers/terms -> exact and FTS5 selection
 selected original chunks -> injected prepared request
-retrieval miss -> explicit model recovery path
+model marker replayed by client -> exact-ID then FTS5 selection
+retrieval miss -> original request, one provider attempt, explicit miss event
 ```
 
-The v0.5 evidence gate requires persistent artifact privacy/retention/deletion,
-exact-identifier-first retrieval, a model-visible recovery mechanism, and
-full-session miss/retry accounting. See the [roadmap](../roadmap.md).
+The marker is `token_shuffle_retrieve("query")`. A model can emit it and a
+normal coding-agent client can replay that assistant turn in the next request.
+Selected content is bounded and injected as untrusted prior context. Search or
+persistence failure fails open; retry count remains zero. See
+[ADR 0014](decisions/0014-retrieval-request-and-retry-semantics.md).
 
 ## See also
 

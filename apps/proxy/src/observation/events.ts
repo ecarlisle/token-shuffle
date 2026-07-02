@@ -7,6 +7,8 @@ export type ObservationEventType =
   | "request.measured"
   | "policy.shadow_evaluated"
   | "policy.applied"
+  | "artifact.externalized"
+  | "retrieval.completed"
   | "route.selected"
   | "attempt.started"
   | "attempt.first_byte"

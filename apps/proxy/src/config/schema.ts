@@ -51,6 +51,7 @@ export const TokenShuffleConfigSchema = Type.Object(
           contentFingerprintKey: Type.Optional(EnvironmentReferenceSchema),
           structuralRetentionDays: Type.Optional(Type.Integer({ minimum: 1 })),
           errorRetentionDays: Type.Optional(Type.Integer({ minimum: 1 })),
+          artifactRetentionDays: Type.Optional(Type.Integer({ minimum: 1 })),
         },
         { additionalProperties: false },
       ),
@@ -87,6 +88,18 @@ export const TokenShuffleConfigSchema = Type.Object(
                 activeWindowMessages: Type.Optional(Type.Integer({ minimum: 2, maximum: 1_000 })),
                 maximumSourceCharacters: Type.Optional(
                   Type.Integer({ minimum: 1_024, maximum: 16 * 1024 * 1024 }),
+                ),
+              },
+              { additionalProperties: false },
+            ),
+          ),
+          retrieval: Type.Optional(
+            Type.Object(
+              {
+                enabled: Type.Boolean(),
+                maximumResults: Type.Optional(Type.Integer({ minimum: 1, maximum: 10 })),
+                maximumInjectedCharacters: Type.Optional(
+                  Type.Integer({ minimum: 256, maximum: 1_000_000 }),
                 ),
               },
               { additionalProperties: false },
@@ -140,6 +153,7 @@ export interface RuntimeConfig {
     readonly contentFingerprintKey?: string;
     readonly structuralRetentionDays: number;
     readonly errorRetentionDays: number;
+    readonly artifactRetentionDays?: number;
   };
   readonly policies?: {
     readonly killSwitch: boolean;
@@ -156,6 +170,11 @@ export interface RuntimeConfig {
       readonly minimumMessages: number;
       readonly activeWindowMessages: number;
       readonly maximumSourceCharacters: number;
+    };
+    readonly retrieval?: {
+      readonly enabled: boolean;
+      readonly maximumResults: number;
+      readonly maximumInjectedCharacters: number;
     };
   };
   readonly limits: {

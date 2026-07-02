@@ -102,9 +102,12 @@ export interface DashboardDiagnostics {
   storage: {
     path: string;
     rawContentRetained: boolean;
+    artifactContentRetained: boolean;
     structuralRetentionDays: number;
     errorRetentionDays: number;
+    artifactRetentionDays: number;
     eventCount: number | null;
+    artifactCount: number | null;
     sqliteVersion: string | null;
     degraded: boolean;
     droppedEvents: number;
@@ -114,6 +117,7 @@ export interface DashboardDiagnostics {
     providers: string[];
     streaming: boolean;
     retries: boolean;
+    retrieval: boolean;
   };
   policies: {
     mode: "observe" | "optimize";
@@ -129,6 +133,11 @@ export interface DashboardDiagnostics {
       minimumMessages: number;
       activeWindowMessages: number;
       maximumSourceCharacters: number;
+    };
+    retrieval: {
+      enabled: boolean;
+      maximumResults: number;
+      maximumInjectedCharacters: number;
     };
     dynamicToolDefinitionSelection: {
       mode: "shadow";

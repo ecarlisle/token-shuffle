@@ -40,6 +40,7 @@ Each ERP should describe:
 | ERP-0007 | CLI Developer Experience | P0 | Completed |
 | ERP-0008 | Keyed Content Fingerprints | P0 | Completed |
 | ERP-0009 | Versioned Storage Migrations | P0 | Completed |
+| ERP-0010 | Retrieval Request and Retry Semantics | P0 | Completed |
 
 ## Related
 

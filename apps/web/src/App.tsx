@@ -436,6 +436,18 @@ function DiagnosticsPage(): React.JSX.Element {
           <Fact label="Database" value={data.storage.path} />
           <Fact label="SQLite" value={data.storage.sqliteVersion ?? "Unavailable"} />
           <Fact label="Events" value={formatNumber(data.storage.eventCount ?? 0)} />
+          <Fact
+            label="Artifacts"
+            value={formatNumber(data.storage.artifactCount ?? 0)}
+          />
+          <Fact
+            label="Artifact retention"
+            value={
+              data.storage.artifactContentRetained
+                ? `${data.storage.artifactRetentionDays} days`
+                : "Disabled"
+            }
+          />
           <Fact label="Raw content" value={data.storage.rawContentRetained ? "Enabled" : "Disabled"} />
         </DiagnosticGroup>
         <DiagnosticGroup title="Retention">

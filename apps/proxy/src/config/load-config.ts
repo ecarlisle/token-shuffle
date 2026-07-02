@@ -119,6 +119,7 @@ export function parseConfig(
           }),
       structuralRetentionDays: config.storage?.structuralRetentionDays ?? 30,
       errorRetentionDays: config.storage?.errorRetentionDays ?? 14,
+      artifactRetentionDays: config.storage?.artifactRetentionDays ?? 7,
     },
     policies: {
       killSwitch: config.policies?.killSwitch ?? false,
@@ -141,6 +142,12 @@ export function parseConfig(
         maximumSourceCharacters:
           config.policies?.conversationCompaction?.maximumSourceCharacters ??
           256_000,
+      },
+      retrieval: {
+        enabled: config.policies?.retrieval?.enabled ?? false,
+        maximumResults: config.policies?.retrieval?.maximumResults ?? 3,
+        maximumInjectedCharacters:
+          config.policies?.retrieval?.maximumInjectedCharacters ?? 24_000,
       },
     },
     limits: {

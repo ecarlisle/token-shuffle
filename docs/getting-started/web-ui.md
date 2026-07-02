@@ -50,7 +50,8 @@ The implemented overview shows:
 - provider cache reads, kept separate from reduction;
 - average request latency;
 - provider-reported versus estimated count provenance;
-- persistence health, dropped-event count, and raw-content retention state.
+- persistence health, dropped-event count, artifact count, and separate
+  raw-content/artifact retention state.
 
 Values from different categories are not combined into one savings number.
 Cost estimates, cache-write reporting, inference avoided through response reuse,

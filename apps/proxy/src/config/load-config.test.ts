@@ -55,6 +55,7 @@ describe("parseConfig", () => {
     expect(config.upstream.compatibility).toEqual({ developerRole: "preserve" });
     expect(config.limits.requestBodyBytes).toBe(16 * 1024 * 1024);
     expect(config.storage.retainRawContent).toBe(false);
+    expect(config.storage.artifactRetentionDays).toBe(7);
     expect(config.policies).toEqual({
       killSwitch: false,
       toolOutput: {
@@ -68,6 +69,11 @@ describe("parseConfig", () => {
         minimumMessages: 12,
         activeWindowMessages: 6,
         maximumSourceCharacters: 256_000,
+      },
+      retrieval: {
+        enabled: false,
+        maximumResults: 3,
+        maximumInjectedCharacters: 24_000,
       },
     });
   });

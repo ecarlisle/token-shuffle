@@ -30,7 +30,8 @@
       "fromEnv": "TOKEN_SHUFFLE_FINGERPRINT_KEY"
     },
     "structuralRetentionDays": 30,
-    "errorRetentionDays": 14
+    "errorRetentionDays": 14,
+    "artifactRetentionDays": 7
   },
   "policies": {
     // v0.3 policies are opt-in. This switch immediately bypasses all of them.
@@ -48,6 +49,11 @@
       "minimumMessages": 12,
       "activeWindowMessages": 6,
       "maximumSourceCharacters": 256000
+    },
+    "retrieval": {
+      "enabled": false,
+      "maximumResults": 3,
+      "maximumInjectedCharacters": 24000
     }
   }
 }

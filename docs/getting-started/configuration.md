@@ -140,6 +140,9 @@ policy separately:
 - `conversationCompaction` replaces eligible old non-system turns with
   deterministic structured state. System/developer messages and the configured
   active window remain verbatim.
+- `retrieval` stores eligible compacted turns and full tool outputs as local
+  artifacts, then injects bounded session-scoped matches for an explicit
+  `token_shuffle_retrieve("query")` marker.
 
 `maximumInputCharacters` is a safety bound, not a truncation target. Tool output
 larger than the limit bypasses the policy unchanged. `killSwitch: true` bypasses
@@ -151,12 +154,20 @@ when its source is within `maximumSourceCharacters`, and only when the complete
 prepared request is smaller. Each summary contains source indexes, a
 keyed HMAC-SHA-256 fingerprint, version, and uncertainty statement.
 
-When compaction applies, v0.4 keeps the omitted source in a bounded memory-only
+When compaction applies, Token Shuffle keeps the omitted source in a bounded memory-only
 recovery snapshot for eight hours. It is available only through the separately
 authenticated administrative API, is never written to SQLite, and disappears
 on proxy restart. Deleting its request, session, or all history deletes the
-snapshot immediately. It is not available to the model. Persistent externalized
-artifacts and model-directed retrieval remain v0.5 scope.
+snapshot immediately. With retrieval disabled, it is not available to the
+model.
+
+When `retrieval.enabled` is true, eligible source is also retained in SQLite for
+`storage.artifactRetentionDays` (seven days by default). This is readable raw
+context and changes the privacy posture. Exact artifact IDs are resolved before
+FTS5 lexical matches. Results are limited by `maximumResults` and
+`maximumInjectedCharacters`. The model can emit
+`token_shuffle_retrieve("query")`; retrieval occurs when the client includes
+that assistant turn in its next request. No hidden inference retry occurs.
 
 ### `server`
 
@@ -195,8 +206,9 @@ not the shell's current working directory. The CLI can therefore be invoked
 from any project without moving its database, PID, or dashboard bootstrap files.
 
 Initial defaults retain structural execution events for 30 days and redacted
-errors for 14 days. Aggregate projections remain until deleted. Cache expiry is
-configured separately.
+errors for 14 days. Retrieval artifacts use a separate seven-day default and
+exist only while retrieval is enabled. Request, session, and history deletion
+remove both events and their artifacts. Cache expiry is configured separately.
 
 Enable raw capture only for a bounded diagnostic or replay session after
 reviewing the content involved. The web UI must make capture state conspicuous.

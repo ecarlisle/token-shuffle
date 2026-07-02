@@ -30,6 +30,10 @@ import {
   validateChatCompletionsRequest,
 } from "./protocol/openai/chat-completions.js";
 import { OpenAiCompatibleProvider } from "./providers/openai-compatible.js";
+import type {
+  ArtifactMatch,
+  ContextArtifact,
+} from "./storage/event-store.js";
 
 export interface DashboardEventStore {
   list(): Promise<ObservationEvent[]>;
@@ -39,7 +43,14 @@ export interface DashboardEventStore {
   diagnostics?(): Promise<{
     readonly sqliteVersion: string;
     readonly eventCount: number;
+    readonly artifactCount?: number;
   }>;
+  putArtifact?(artifact: ContextArtifact): Promise<void>;
+  searchArtifacts?(
+    sessionId: string,
+    query: string,
+    limit: number,
+  ): Promise<ArtifactMatch[]>;
 }
 
 export function buildApp(
@@ -86,6 +97,8 @@ export function buildApp(
     config.mode,
     config.policies,
     config.storage.contentFingerprintKey ?? config.auth.accessToken,
+    options.eventReader,
+    config.policies?.retrieval,
   );
   const shutdownController = new AbortController();
   const adminSessions = new AdminSessionManager(config.storage.path);
@@ -364,9 +377,12 @@ export function buildApp(
         storage: {
           path: config.storage.path,
           rawContentRetained: config.storage.retainRawContent,
+          artifactContentRetained: config.policies?.retrieval?.enabled ?? false,
           structuralRetentionDays: config.storage.structuralRetentionDays,
           errorRetentionDays: config.storage.errorRetentionDays,
+          artifactRetentionDays: config.storage.artifactRetentionDays ?? 7,
           eventCount: diagnostics?.eventCount ?? null,
+          artifactCount: diagnostics?.artifactCount ?? null,
           sqliteVersion: diagnostics?.sqliteVersion ?? null,
           degraded: resilientEventSink.health.degraded,
           droppedEvents: resilientEventSink.health.droppedEvents,
@@ -376,6 +392,7 @@ export function buildApp(
           providers: ["openai-compatible"],
           streaming: true,
           retries: false,
+          retrieval: config.policies?.retrieval?.enabled ?? false,
         },
         policies: {
           mode: config.mode,
@@ -391,6 +408,11 @@ export function buildApp(
             minimumMessages: 12,
             activeWindowMessages: 6,
             maximumSourceCharacters: 256_000,
+          },
+          retrieval: config.policies?.retrieval ?? {
+            enabled: false,
+            maximumResults: 3,
+            maximumInjectedCharacters: 24_000,
           },
           dynamicToolDefinitionSelection: {
             mode: "shadow",
