@@ -21,7 +21,7 @@ SQLite database with:
 - creation and expiry timestamps;
 - a default seven-day retention period.
 
-Artifacts are searched only within the current session. Request, session, and
+Artifacts are persisted and searched only for explicit sessions. Request, session, and
 all-history deletion remove matching artifacts immediately. Expiry pruning
 removes artifacts independently of structural-event retention.
 

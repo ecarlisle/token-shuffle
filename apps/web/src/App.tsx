@@ -463,6 +463,7 @@ function DiagnosticsPage(): React.JSX.Element {
           <Fact label="Policy input limit" value={`${formatNumber(data.policies.toolOutput.maximumInputCharacters)} characters`} />
           <Fact label="Exact redundancy" value={data.policies.exactRedundancy.enabled ? "Enabled" : "Disabled"} />
           <Fact label="Conversation compaction" value={data.policies.conversationCompaction.enabled ? "Enabled" : "Disabled"} />
+          <Fact label="Retrieval" value={data.policies.retrieval.enabled ? "Enabled" : "Disabled"} />
         </DiagnosticGroup>
       </section>
       <section className="mt-14">
@@ -491,6 +492,12 @@ function DiagnosticsPage(): React.JSX.Element {
             status={data.policies.conversationCompaction.enabled ? "Active" : "Off"}
             explanation="Replaces eligible old turns with fingerprinted structured state while retaining system instructions and a verbatim active window."
             limit={`${data.policies.conversationCompaction.activeWindowMessages} active messages · ${data.policies.conversationCompaction.minimumMessages} message minimum`}
+          />
+          <PolicyPreview
+            name="Retrieval"
+            status={data.policies.retrieval.enabled ? "Active" : "Off"}
+            explanation="Retains eligible session-scoped artifacts and injects bounded exact-ID or FTS5 matches only for an explicit next-turn marker."
+            limit={`${data.policies.retrieval.maximumResults} results · ${formatNumber(data.policies.retrieval.maximumInjectedCharacters)} characters`}
           />
         </div>
       </section>

@@ -17,7 +17,7 @@ combinations.
 - **Deferred:** intentionally outside the active roadmap gate.
 - **Speculative:** possible later work without an accepted delivery commitment.
 
-## Current stable release: v0.4.1
+## Current stable release: v0.5.0
 
 | Capability | Status | Introduced | Validation | Notes |
 | --- | --- | --- | --- | --- |
@@ -31,14 +31,14 @@ combinations.
 | Exact redundant tool-result removal | Experimental | v0.3 | [v0.3 release validation](testing/v0.3-release-validation.md) | Restricted to consecutive identical results with the same tool-call ID. |
 | Deterministic old-turn compaction | Experimental | v0.4 | [v0.4 release validation](testing/v0.4-release-validation.md) | Explicit opt-in; structured state and a verbatim active window. |
 | Memory-only compaction-source recovery | Implemented | v0.4 | [v0.4 release validation](testing/v0.4-release-validation.md) | Bounded, administrative, eight-hour lifetime; cleared by deletion or restart. |
+| Addressable persistent local artifacts | Experimental | v0.5 | [v0.5 release validation](testing/v0.5-release-validation.md) | Explicit retrieval opt-in; seven-day default retention and immediate request/session/history deletion. |
+| SQLite FTS5 lexical retrieval | Experimental | v0.5 | [v0.5 release validation](testing/v0.5-release-validation.md) | Session-scoped exact artifact identifiers are checked before bounded lexical matching. |
+| Next-turn model recovery marker | Experimental | v0.5 | [ADR 0014](architecture/decisions/0014-retrieval-request-and-retry-semantics.md) | Requires the client to replay `token_shuffle_retrieve("query")`; creates no hidden inference retry. |
 
 ## Accepted future scope
 
 | Capability | Status | Target | Evidence required |
 | --- | --- | --- | --- |
-| Addressable persistent local artifacts | Planned | v0.5 | Migration, privacy, retention, deletion, and recovery tests |
-| SQLite FTS5 lexical retrieval | Planned | v0.5 | Exact-identifier-first selection and retrieval quality fixtures |
-| Model recovery path for omitted context | Planned | v0.5 | Retrieval-miss and full-session retry accounting |
 | Anthropic Messages ingress | Planned | v0.6 | Separate semantic compatibility contract |
 | Multiple upstream adapters and capability negotiation | Planned | v0.6 | Cross-adapter protocol/event suites |
 | Tauri workstation distribution | Planned | v0.7 | Signed platform packaging and lifecycle smoke tests |

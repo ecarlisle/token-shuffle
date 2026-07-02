@@ -217,4 +217,31 @@ describe("SqliteEventStore", () => {
     expect(await store.deleteRequest("request-delete")).toBe(0);
     expect(await store.searchArtifacts("session-delete", "private", 3)).toEqual([]);
   });
+
+  it("keeps identical content isolated when session-scoped IDs differ", async () => {
+    const store = await createStore();
+    const content = "same readable source";
+    await store.putArtifact({
+      artifactId:
+        "hmac-sha256-dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      requestId: "request-a",
+      sessionId: "session-a",
+      kind: "conversation",
+      content,
+      createdAt: new Date().toISOString(),
+    });
+    await store.putArtifact({
+      artifactId:
+        "hmac-sha256-eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      requestId: "request-b",
+      sessionId: "session-b",
+      kind: "conversation",
+      content,
+      createdAt: new Date().toISOString(),
+    });
+
+    expect(await store.searchArtifacts("session-a", "readable", 3)).toHaveLength(1);
+    expect(await store.searchArtifacts("session-b", "readable", 3)).toHaveLength(1);
+    expect((await store.diagnostics()).artifactCount).toBe(2);
+  });
 });

@@ -435,7 +435,7 @@ describe("buffered Chat Completions forwarding", () => {
     ).toHaveLength(1);
   });
 
-  it("fails open without retry when artifact search fails", async () => {
+  it("distinguishes a retrieval miss from failure and retries neither", async () => {
     let receivedBody = Buffer.alloc(0);
     let providerCalls = 0;
     const baseUrl = await startProvider((request, response) => {
@@ -448,10 +448,12 @@ describe("buffered Chat Completions forwarding", () => {
       });
     });
     const eventSink = new RecordingEventSink();
+    let failSearch = false;
     const eventReader = {
       list: async (): Promise<ObservationEvent[]> => [],
-      searchArtifacts: async (): Promise<never> => {
-        throw new Error("synthetic storage failure");
+      searchArtifacts: async () => {
+        if (failSearch) throw new Error("synthetic storage failure");
+        return [];
       },
     };
     const config: RuntimeConfig = {
@@ -483,22 +485,42 @@ describe("buffered Chat Completions forwarding", () => {
     const rawBody =
       '{"model":"test","messages":[{"role":"assistant","content":"token_shuffle_retrieve(\\\"missing\\\")"},{"role":"user","content":"continue"}],"unknown":true}';
 
-    const response = await app.inject({
+    const missResponse = await app.inject({
       method: "POST",
       url: "/v1/chat/completions",
       headers: authorizedHeaders(),
       payload: rawBody,
     });
 
-    expect(response.statusCode).toBe(200);
+    expect(missResponse.statusCode).toBe(200);
     expect(providerCalls).toBe(1);
     expect(receivedBody).toEqual(Buffer.from(rawBody));
     await new Promise((resolve) => setImmediate(resolve));
-    expect(
-      eventSink.events.find((event) => event.type === "retrieval.completed"),
-    ).toMatchObject({
-      data: { failed: true, hit: false, resultCount: 0, retryCount: 0 },
+    expect(eventSink.events.find((event) => event.type === "retrieval.completed"))
+      .toMatchObject({
+        data: { failed: false, hit: false, resultCount: 0, retryCount: 0 },
+      });
+
+    failSearch = true;
+    const failureResponse = await app.inject({
+      method: "POST",
+      url: "/v1/chat/completions",
+      headers: authorizedHeaders(),
+      payload: rawBody,
     });
+    expect(failureResponse.statusCode).toBe(200);
+    expect(providerCalls).toBe(2);
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(
+      eventSink.events.filter((event) => event.type === "retrieval.completed"),
+    ).toEqual([
+      expect.objectContaining({
+        data: expect.objectContaining({ failed: false, hit: false, retryCount: 0 }),
+      }),
+      expect.objectContaining({
+        data: expect.objectContaining({ failed: true, hit: false, retryCount: 0 }),
+      }),
+    ]);
   });
 
   it("applies explicitly enabled deterministic policies and records final-boundary impact", async () => {

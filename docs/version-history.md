@@ -10,6 +10,27 @@ real, then mark it released with a date before opening the next version entry.
 For present-tense support status, use the
 [capability matrix](capabilities.md); this file remains a historical record.
 
+## v0.5 — Retrieval and externalized context
+
+**Status:** Released as `v0.5.0` on 2026-07-02
+
+v0.5 adds an explicitly enabled local retrieval path:
+
+- compaction sources and large tool/file outputs can become seven-day,
+  session-scoped SQLite artifacts;
+- artifact and query identities use installation-scoped HMAC-SHA-256;
+- schema-v2 migrations preserve existing v0.4 event databases;
+- exact artifact identifiers are resolved before bounded FTS5 lexical search;
+- a model can emit `token_shuffle_retrieve("query")`, which is fulfilled when
+  the client replays that assistant turn in the next request;
+- retrieval hits, misses, failures, injected counts, and retry count zero are
+  structural evidence without query or artifact content;
+- request, session, history deletion, and expiry remove artifacts;
+- a full-session fixture remains net-positive after bounded retrieval.
+
+Same-turn tool interception, automatic retrieval retries, embeddings, and
+cross-session retrieval are not part of v0.5.
+
 ## v0.4 — Conversation compaction
 
 **Status:** Released as `v0.4.0` on 2026-07-01; patched as `v0.4.1` on

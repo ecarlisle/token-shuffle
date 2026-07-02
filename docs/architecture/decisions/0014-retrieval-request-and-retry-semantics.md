@@ -30,7 +30,7 @@ not infer a query from arbitrary prompt prose.
 Rules:
 
 - retrieval is disabled by default;
-- artifacts and search are scoped to the current session;
+- artifacts and search require an explicit session and are scoped to it;
 - exact artifact identifiers are checked before FTS5 lexical matching;
 - injected content is bounded by result count and characters;
 - a miss fails open to the request without injected content;

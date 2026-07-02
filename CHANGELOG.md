@@ -4,6 +4,17 @@ This project follows Keep a Changelog conventions while it is pre-release.
 
 ## Unreleased
 
+## 0.5.0 - 2026-07-02
+
+### Added
+
+- Opt-in, session-scoped persistent artifacts for compacted old turns and large
+  tool/file outputs with separate seven-day retention.
+- Schema-v2 SQLite migration and exact-ID-first FTS5 lexical retrieval.
+- Explicit next-turn `token_shuffle_retrieve("query")` recovery with bounded
+  injection, hit/miss/failure evidence, and zero inference retries.
+- Dashboard artifact count and retention diagnostics.
+
 ### Security
 
 - Replaced persisted unkeyed compaction fingerprints with installation-scoped

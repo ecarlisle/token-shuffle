@@ -105,6 +105,7 @@ export class ExecutionCoordinator {
       return undefined;
     }
 
+    const session = resolveSession(suppliedSessionId);
     const fingerprintKey = this.contentFingerprintKey;
     const preparation =
       this.mode === "optimize"
@@ -115,6 +116,8 @@ export class ExecutionCoordinator {
               ? undefined
               : (source: string) =>
                   `hmac-sha256-${createHmac("sha256", fingerprintKey)
+                    .update(session.id)
+                    .update("\0")
                     .update(source)
                     .digest("hex")}`,
           )
@@ -125,7 +128,6 @@ export class ExecutionCoordinator {
           raw: Buffer.from(JSON.stringify(preparation.value)),
         }
       : body;
-    const session = resolveSession(suppliedSessionId);
     const retrieval = await this.#retrieve(preparedBody.parsed, session.id);
     const retrievedBody: RawJsonBody =
       retrieval.value === preparedBody.parsed
@@ -152,6 +154,7 @@ export class ExecutionCoordinator {
       preparation.decisions,
       observation.requestId,
       observation.sessionId,
+      session.association,
     );
     this.#observations.add(observation);
     observation.start();
@@ -246,6 +249,7 @@ export class ExecutionCoordinator {
     decisions: readonly PolicyDecision[],
     requestId: string,
     sessionId: string,
+    sessionAssociation: ObservationEvent["session"]["association"],
   ): ContextArtifact[] {
     const artifacts: ContextArtifact[] = [];
     if (typeof baseline !== "object" || baseline === null || !("messages" in baseline)) {
@@ -277,7 +281,7 @@ export class ExecutionCoordinator {
         requestId,
         sessionId,
       );
-      if (this.retrieval.enabled) {
+      if (this.retrieval.enabled && sessionAssociation === "explicit") {
         artifacts.push({
           artifactId: decision.sourceFingerprint,
           requestId,
@@ -288,7 +292,11 @@ export class ExecutionCoordinator {
         });
       }
     }
-    if (this.retrieval.enabled && this.contentFingerprintKey !== undefined) {
+    if (
+      this.retrieval.enabled &&
+      sessionAssociation === "explicit" &&
+      this.contentFingerprintKey !== undefined
+    ) {
       for (const message of messages) {
         if (
           typeof message !== "object" ||
@@ -306,6 +314,8 @@ export class ExecutionCoordinator {
           "sha256",
           this.contentFingerprintKey,
         )
+          .update(sessionId)
+          .update("\0")
           .update(content)
           .digest("hex")}`;
         artifacts.push({
@@ -336,6 +346,8 @@ export class ExecutionCoordinator {
       this.contentFingerprintKey === undefined
         ? undefined
         : `hmac-sha256-${createHmac("sha256", this.contentFingerprintKey)
+            .update(sessionId)
+            .update("\0")
             .update(query)
             .digest("hex")}`;
     try {

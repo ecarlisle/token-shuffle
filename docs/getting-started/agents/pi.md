@@ -31,6 +31,9 @@ Create or update `~/.pi/agent/models.json`:
       "api": "openai-completions",
       "apiKey": "$TOKEN_SHUFFLE_ACCESS_TOKEN",
       "authHeader": true,
+      "headers": {
+        "X-Token-Shuffle-Session-Id": "replace-with-a-project-session-id"
+      },
       "models": [
         {
           "id": "provider-model-id",
@@ -50,6 +53,11 @@ unchanged.
 
 If Token Shuffle uses a non-default port, update `baseUrl`. Keep the `/v1`
 suffix.
+
+The session header is required only for v0.5 persistent retrieval. Use a
+non-secret identifier and rotate it between unrelated conversations; all
+requests sharing it may retrieve the same local artifacts. Remove `headers`
+when retrieval is disabled.
 
 ## 3. Select and test the model
 

@@ -302,7 +302,7 @@ execution coordinator
 gateway serialization --> client
 ```
 
-This flow is not implemented in v0.4. A future failover target may use a
+This candidate/failover flow is not implemented in v0.5. A future failover target may use a
 different tokenizer, context window, tool format, or
 provider capability. Context prepared for one candidate is never blindly reused
 for another.

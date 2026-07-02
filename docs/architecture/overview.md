@@ -65,7 +65,7 @@ The hot path must not wait for dashboard writes. Backpressure and client
 disconnect propagation are first-class integration-test concerns.
 
 The execution coordinator owns this lifecycle. A route planner is not yet
-implemented because v0.4 has one configured upstream. Future retry or failover
+implemented because v0.5 has one configured upstream. Future retry or failover
 behavior requires a new decision rather than emerging from provider-library
 defaults.
 

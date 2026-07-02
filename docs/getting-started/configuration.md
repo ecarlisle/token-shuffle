@@ -1,6 +1,6 @@
 # Configure Token Shuffle
 
-> **Availability:** Implemented in v0.4.0. Multi-provider configuration is
+> **Availability:** Implemented through v0.5.0. Multi-provider configuration is
 > intentionally deferred.
 
 ## Configuration location
@@ -52,7 +52,8 @@ active default. In a repository checkout, run
       "fromEnv": "TOKEN_SHUFFLE_FINGERPRINT_KEY"
     },
     "structuralRetentionDays": 30,
-    "errorRetentionDays": 14
+    "errorRetentionDays": 14,
+    "artifactRetentionDays": 7
   },
   "policies": {
     "killSwitch": false,
@@ -69,6 +70,11 @@ active default. In a repository checkout, run
       "minimumMessages": 12,
       "activeWindowMessages": 6,
       "maximumSourceCharacters": 256000
+    },
+    "retrieval": {
+      "enabled": false,
+      "maximumResults": 3,
+      "maximumInjectedCharacters": 24000
     }
   }
 }
@@ -163,7 +169,9 @@ model.
 
 When `retrieval.enabled` is true, eligible source is also retained in SQLite for
 `storage.artifactRetentionDays` (seven days by default). This is readable raw
-context and changes the privacy posture. Exact artifact IDs are resolved before
+context and changes the privacy posture. Persistence and lookup require an
+explicit `X-Token-Shuffle-Session-Id`; inferred request sessions do not retain
+artifacts. Exact artifact IDs are resolved before
 FTS5 lexical matches. Results are limited by `maximumResults` and
 `maximumInjectedCharacters`. The model can emit
 `token_shuffle_retrieve("query")`; retrieval occurs when the client includes

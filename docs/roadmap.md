@@ -139,7 +139,7 @@ ineligible, killed, or non-beneficial candidates preserve the original request.
 Applied source remains recoverable from bounded eight-hour process memory behind
 dashboard administration without entering SQLite or model context.
 
-## v0.5 — Retrieval and externalized context
+## v0.5 — Retrieval and externalized context (released 2026-07-02)
 
 - Addressable local artifacts for full tool outputs, files, and old turns.
 - SQLite FTS5 retrieval using exact identifiers before semantic similarity.
@@ -148,6 +148,14 @@ dashboard administration without entering SQLite or model context.
 
 Exit: retrieved context improves net session usage on accepted fixtures without
 silently preventing recovery of omitted original content.
+
+Exit evidence: schema-v2 migration tests preserve v0.4 databases; keyed
+artifacts are session-scoped, retained separately, and deleted with request or
+session evidence. Exact identifiers are resolved before FTS5 lexical matching.
+The explicit next-turn retrieval marker injects bounded content without an
+automatic provider retry. Fixtures distinguish hit, miss, and storage failure,
+record retry count zero, and show positive combined session reduction after a
+bounded retrieval.
 
 ## v0.6 — Protocol and provider breadth
 

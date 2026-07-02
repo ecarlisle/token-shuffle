@@ -1,6 +1,6 @@
 # Request-flow walkthroughs
 
-These walkthroughs explain implemented v0.4 behavior without requiring source
+These walkthroughs explain implemented behavior through v0.5 without requiring source
 code knowledge. Planned v0.5 retrieval is separated at the end.
 
 ## Startup

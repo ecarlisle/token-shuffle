@@ -1,7 +1,7 @@
 # Getting started
 
 > **Availability:** The proxy, evidence dashboard, and opt-in deterministic
-> reduction/compaction policies are implemented in v0.4.0.
+> reduction, compaction, and retrieval policies are implemented in v0.5.0.
 > OpenCode and Pi with OpenCode Zen are verified; other upstream combinations
 > remain provisional.
 
@@ -172,6 +172,23 @@ Confirm that:
 2. the status endpoint reports no dropped persistence events;
 3. the upstream provider and model are correct;
 4. mode is `observe`, so the request was not semantically transformed.
+
+### Optional v0.5 retrieval test
+
+After initial observe-mode testing, set `mode` to `optimize`, enable
+`policies.retrieval`, and configure an explicit session header in the agent
+guide. A compacted long conversation or a tool/file result of at least 512
+characters creates an artifact. Ask the model or send:
+
+```text
+token_shuffle_retrieve("an exact artifact ID, file path, symbol, or distinctive term")
+```
+
+If a model emits this marker, continue the conversation once so the client
+replays the assistant turn. Token Shuffle retrieves on that next request; it
+does not launch an inference retry itself. Confirm the dashboard shows artifact
+retention and a `retrieval.completed` event. A miss is safe and leaves the
+request otherwise unchanged.
 
 ## 6. Open the dashboard
 

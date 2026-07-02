@@ -179,11 +179,11 @@ export function buildApp(
     async () => ({
       mode: config.mode,
       name: "token-shuffle",
-      phase: "v0.4",
+      phase: "v0.5",
       persistence: resilientEventSink.health,
       ready: true,
       streaming: true,
-      version: "0.4.1",
+      version: "0.5.0",
     }),
   );
 
@@ -288,7 +288,7 @@ export function buildApp(
         system: {
           mode: config.mode,
           persistence: resilientEventSink.health,
-          version: "0.4.1",
+          version: "0.5.0",
         },
       };
     },
@@ -368,8 +368,8 @@ export function buildApp(
       reply.header("cache-control", "no-store");
       return {
         mode: config.mode,
-        version: "0.4.1",
-        phase: "v0.4",
+        version: "0.5.0",
+        phase: "v0.5",
         server: {
           host: config.server.host,
           port: config.server.port,

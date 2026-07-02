@@ -21,7 +21,7 @@ Optimize for trustworthiness before feature breadth:
 
 ## Current status
 
-The stable release is **v0.4.1**. **v0.5 is planned but not yet implemented.**
+The stable release is **v0.5.0**. **v0.6 is planned but not yet implemented.**
 
 - The executable exposes authenticated status and buffered/streaming
   `POST /v1/chat/completions` forwarding.
@@ -42,9 +42,14 @@ The stable release is **v0.4.1**. **v0.5 is planned but not yet implemented.**
   verbatim active window. It applies only when structured state is smaller,
   source size is bounded, and every summary records source indexes, version,
   fingerprint, and uncertainty.
-- v0.4 recovery snapshots are memory-only, bounded, expire after eight hours,
-  clear on restart, and require the administrative session. Do not persist them,
-  expose them to the model, or describe them as v0.5 retrieval.
+- v0.4 administrative recovery snapshots remain memory-only, bounded, and
+  eight-hour. Separately, v0.5 may persist eligible source as session-scoped
+  retrieval artifacts only with explicit opt-in, visible seven-day retention,
+  HMAC identities, and deletion integration.
+- v0.5 retrieval recognizes only an explicit
+  `token_shuffle_retrieve("query")` marker replayed in the next client request.
+  It performs one provider attempt and records hit/miss, injected counts, and
+  retry count zero.
 - The active runtime baseline is Node.js 24.15+ and TypeScript 6.
 
 Do not describe a planned capability as implemented.

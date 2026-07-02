@@ -60,7 +60,7 @@ test.beforeEach(async ({ page }) => {
         system: {
           mode: "observe",
           persistence: { degraded: false, droppedEvents: 0 },
-          version: "0.4.1",
+          version: "0.5.0",
         },
       }),
     }),
@@ -128,15 +128,18 @@ test.beforeEach(async ({ page }) => {
       contentType: "application/json",
       body: JSON.stringify({
         mode: "optimize",
-        version: "0.4.1",
-        phase: "v0.4",
+        version: "0.5.0",
+        phase: "v0.5",
         server: { host: "127.0.0.1", port: 3210 },
         storage: {
           path: "/synthetic/events.sqlite",
           rawContentRetained: false,
+          artifactContentRetained: true,
           structuralRetentionDays: 30,
           errorRetentionDays: 14,
+          artifactRetentionDays: 7,
           eventCount: 8,
+          artifactCount: 2,
           sqliteVersion: "3.51.3",
           degraded: false,
           droppedEvents: 0,
@@ -146,6 +149,7 @@ test.beforeEach(async ({ page }) => {
           providers: ["openai-compatible"],
           streaming: true,
           retries: false,
+          retrieval: true,
         },
         policies: {
           mode: "optimize",
@@ -161,6 +165,11 @@ test.beforeEach(async ({ page }) => {
             minimumMessages: 12,
             activeWindowMessages: 6,
             maximumSourceCharacters: 256000,
+          },
+          retrieval: {
+            enabled: true,
+            maximumResults: 3,
+            maximumInjectedCharacters: 24000,
           },
           dynamicToolDefinitionSelection: { mode: "shadow", retryCount: 0 },
         },
@@ -180,6 +189,9 @@ test("explains active policy limits and kill-switch state", async ({ page }) => 
   await expect(page.getByText("Shadow")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Conversation compaction" })).toBeVisible();
   await expect(page.getByText("6 active messages · 12 message minimum")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Retrieval" })).toBeVisible();
+  await expect(page.getByText("3 results · 24,000 characters")).toBeVisible();
+  await expect(page.getByText("7 days")).toBeVisible();
 });
 
 test("traces overview evidence into a redacted request detail", async ({ page }) => {

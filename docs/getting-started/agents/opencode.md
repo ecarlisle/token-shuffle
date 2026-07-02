@@ -32,7 +32,10 @@ Create or update `~/.config/opencode/opencode.jsonc`:
       "name": "Token Shuffle",
       "options": {
         "baseURL": "http://127.0.0.1:3210/v1",
-        "apiKey": "{env:TOKEN_SHUFFLE_ACCESS_TOKEN}"
+        "apiKey": "{env:TOKEN_SHUFFLE_ACCESS_TOKEN}",
+        "headers": {
+          "X-Token-Shuffle-Session-Id": "replace-with-a-project-session-id"
+        }
       },
       "models": {
         "provider-model-id": {
@@ -50,6 +53,13 @@ by the upstream configured in Token Shuffle.
 
 If Token Shuffle uses a non-default port, update `baseURL`. Keep the `/v1`
 suffix.
+
+The session header is required only for v0.5 persistent retrieval. Use a
+non-secret identifier scoped narrowly enough that conversations allowed to
+retrieve one another's artifacts intentionally share it. Remove the `headers`
+block when retrieval is disabled. Static project IDs group every request using
+that provider configuration; rotate the value when starting an unrelated
+conversation.
 
 ## 3. Select and test the model
 
