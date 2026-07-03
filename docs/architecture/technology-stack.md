@@ -49,7 +49,7 @@ The development workspace now enforces the Node 24.15 minimum and TypeScript 6.
 
 ## Adoption status
 
-This document is the accepted target stack. At v0.5:
+This document is the accepted target stack. At v0.6:
 
 - Node, TypeScript, pnpm, Fastify, Undici, TypeBox configuration validation,
   Pino, `node:sqlite`, React, Vite, TanStack Query/Router/Table, ECharts, Radix,

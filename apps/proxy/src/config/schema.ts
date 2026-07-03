@@ -43,6 +43,17 @@ export const TokenShuffleConfigSchema = Type.Object(
       },
       { additionalProperties: false },
     ),
+    anthropicUpstream: Type.Optional(
+      Type.Object(
+        {
+          type: Type.Literal("anthropic"),
+          baseUrl: Type.String({ minLength: 1 }),
+          apiKey: EnvironmentReferenceSchema,
+          anthropicVersion: Type.Optional(Type.String({ minLength: 1 })),
+        },
+        { additionalProperties: false },
+      ),
+    ),
     storage: Type.Optional(
       Type.Object(
         {
@@ -146,6 +157,12 @@ export interface RuntimeConfig {
     readonly compatibility?: {
       readonly developerRole: "preserve" | "system";
     };
+  };
+  readonly anthropicUpstream?: {
+    readonly type: "anthropic";
+    readonly baseUrl: URL;
+    readonly apiKey: string;
+    readonly anthropicVersion: string;
   };
   readonly storage: {
     readonly retainRawContent: false;

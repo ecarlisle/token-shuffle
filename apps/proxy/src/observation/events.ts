@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-export const EVENT_SCHEMA_VERSION = 1;
+export const EVENT_SCHEMA_VERSION = 2;
 
 export type ObservationEventType =
   | "request.received"
@@ -20,7 +20,7 @@ export type ObservationEventType =
   | "persistence.degraded";
 
 export interface ObservationEvent {
-  readonly schemaVersion: typeof EVENT_SCHEMA_VERSION;
+  readonly schemaVersion: 1 | typeof EVENT_SCHEMA_VERSION;
   readonly eventId: string;
   readonly type: ObservationEventType;
   readonly timestamp: string;
@@ -31,8 +31,8 @@ export interface ObservationEvent {
     readonly association: "explicit" | "inferred";
     readonly method: "x-token-shuffle-session-id" | "request";
   };
-  readonly protocol: "openai-chat-completions";
-  readonly provider: "openai-compatible";
+  readonly protocol: "openai-chat-completions" | "anthropic-messages";
+  readonly provider: "openai-compatible" | "anthropic";
   readonly model: string;
   readonly data: Readonly<Record<string, boolean | number | string | null>>;
   readonly retentionClass: "structural" | "redacted-error";

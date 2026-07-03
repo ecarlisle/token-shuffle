@@ -17,9 +17,9 @@ import {
 } from "../observation/events.js";
 import type { RawJsonBody } from "../protocol/openai/chat-completions.js";
 import type {
-  OpenAiCompatibleProvider,
+  InferenceProvider,
   UpstreamResponse,
-} from "../providers/openai-compatible.js";
+} from "../providers/inference-provider.js";
 import type {
   ArtifactMatch,
   ContextArtifact,
@@ -37,6 +37,7 @@ export interface ProviderUsage {
   readonly inputTokens?: number;
   readonly outputTokens?: number;
   readonly cacheReadInputTokens?: number;
+  readonly cacheWriteInputTokens?: number;
 }
 
 export interface ArtifactStore {
@@ -78,7 +79,7 @@ export class ExecutionCoordinator {
   readonly #compactionRecovery = new CompactionRecoveryStore();
 
   public constructor(
-    private readonly provider: OpenAiCompatibleProvider,
+    private readonly provider: InferenceProvider,
     private readonly concurrencyLimit: number,
     private readonly eventSink: EventSink = new NoopEventSink(),
     private readonly mode: "observe" | "optimize" = "observe",
@@ -136,7 +137,7 @@ export class ExecutionCoordinator {
             parsed: retrieval.value,
             raw: Buffer.from(JSON.stringify(retrieval.value)),
           };
-    const providerBody = this.provider.prepareChatCompletions(retrievedBody.raw);
+    const providerBody = this.provider.prepareRequest(retrievedBody.raw);
     const forwardedBody: RawJsonBody =
       providerBody === retrievedBody.raw
         ? retrievedBody
@@ -148,6 +149,8 @@ export class ExecutionCoordinator {
       session,
       this.eventSink,
       retrieval,
+      this.provider.protocol,
+      this.provider.providerKind,
     );
     const artifacts = this.#retainCompactionSources(
       body.parsed,
@@ -181,7 +184,7 @@ export class ExecutionCoordinator {
     signal.addEventListener("abort", markCancelled, { once: true });
 
     try {
-      const response = await this.provider.chatCompletions(providerBody, signal);
+      const response = await this.provider.execute(providerBody, signal);
       let released = false;
       let finished = false;
       return {
@@ -497,6 +500,8 @@ class RequestObservation {
     session: ObservationEvent["session"],
     private readonly sink: EventSink,
     private readonly retrievalResult: RetrievalResult,
+    private readonly protocol: ObservationEvent["protocol"],
+    private readonly providerKind: ObservationEvent["provider"],
   ) {
     let resolveFinished: (() => void) | undefined;
     this.#finished = new Promise<void>((resolve) => {
@@ -619,6 +624,7 @@ class RequestObservation {
       inputTokens,
       outputTokens,
       cacheReadInputTokens: usage?.cacheReadInputTokens ?? 0,
+      cacheWriteInputTokens: usage?.cacheWriteInputTokens ?? 0,
       provenance:
         usage?.inputTokens !== undefined || usage?.outputTokens !== undefined
           ? "provider-reported"
@@ -658,8 +664,8 @@ class RequestObservation {
       requestId: this.requestId,
       attemptId: this.#attemptId,
       session: this.#session,
-      protocol: "openai-chat-completions",
-      provider: "openai-compatible",
+      protocol: this.protocol,
+      provider: this.providerKind,
       model: this.#model,
       data,
       retentionClass,

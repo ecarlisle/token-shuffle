@@ -141,8 +141,8 @@ async function openDashboard(noBrowser: boolean): Promise<void> {
     throw new Error(`Dashboard status failed with HTTP ${statusResponse.statusCode}.`);
   }
   const statusValue = JSON.parse(statusBody) as { readonly phase?: unknown };
-  if (statusValue.phase !== "v0.5") {
-    throw new Error("Restart Token Shuffle with the v0.5 build before opening.");
+  if (statusValue.phase !== "v0.6") {
+    throw new Error("Restart Token Shuffle with the v0.6 build before opening.");
   }
   const bootstrap = await createDashboardBootstrap(config.storage.path);
   const url = `http://${config.server.host}:${config.server.port}/#bootstrap=${bootstrap.code}`;

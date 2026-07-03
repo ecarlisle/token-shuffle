@@ -11,7 +11,7 @@ evidence separate so users can decide whether an optimization is worthwhile.
 
 ## What works today
 
-The current stable release is **v0.5.0**:
+The current stable release is **v0.6.0**:
 
 - authenticated loopback OpenAI Chat Completions proxying;
 - buffered and SSE forwarding with cancellation, backpressure, and no automatic
@@ -23,6 +23,8 @@ The current stable release is **v0.5.0**:
   bounded memory-only source recovery.
 - opt-in persistent context artifacts with exact-ID/FTS5 retrieval and an
   explicit next-turn model recovery marker.
+- optional native Anthropic Messages ingress alongside the OpenAI-compatible
+  target, with protocol-aware usage/cache evidence.
 
 OpenCode 1.17.11 and Pi 0.80.3 are verified in observe mode with OpenCode Zen.
 Optimize-mode policies and other upstream combinations remain provisional. See
@@ -30,8 +32,8 @@ the [compatibility matrix](docs/compatibility.md) for the exact evidence.
 
 ## What is next
 
-v0.6 is planned to add protocol and provider breadth. Later milestones cover
-workstation packaging, and a trustworthy v1.0 distribution. See the
+v0.7 is planned to add workstation packaging, followed by a trustworthy v1.0
+distribution. See the
 [roadmap](docs/roadmap.md).
 
 ## Start here

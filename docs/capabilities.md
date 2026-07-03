@@ -17,7 +17,7 @@ combinations.
 - **Deferred:** intentionally outside the active roadmap gate.
 - **Speculative:** possible later work without an accepted delivery commitment.
 
-## Current stable release: v0.5.0
+## Current stable release: v0.6.0
 
 | Capability | Status | Introduced | Validation | Notes |
 | --- | --- | --- | --- | --- |
@@ -34,13 +34,13 @@ combinations.
 | Addressable persistent local artifacts | Experimental | v0.5 | [v0.5 release validation](testing/v0.5-release-validation.md) | Explicit retrieval opt-in; seven-day default retention and immediate request/session/history deletion. |
 | SQLite FTS5 lexical retrieval | Experimental | v0.5 | [v0.5 release validation](testing/v0.5-release-validation.md) | Session-scoped exact artifact identifiers are checked before bounded lexical matching. |
 | Next-turn model recovery marker | Experimental | v0.5 | [ADR 0014](architecture/decisions/0014-retrieval-request-and-retry-semantics.md) | Requires the client to replay `token_shuffle_retrieve("query")`; creates no hidden inference retry. |
+| Anthropic Messages ingress | Experimental | v0.6 | [v0.6 release validation](testing/v0.6-release-validation.md) | Native buffered/SSE pass-through; live compatibility remains provisional. |
+| Protocol capability negotiation | Implemented | v0.6 | [ADR 0016](architecture/decisions/0016-protocol-capability-negotiation.md) | Ingress selects a configured compatible adapter; no automatic failover. |
 
 ## Accepted future scope
 
 | Capability | Status | Target | Evidence required |
 | --- | --- | --- | --- |
-| Anthropic Messages ingress | Planned | v0.6 | Separate semantic compatibility contract |
-| Multiple upstream adapters and capability negotiation | Planned | v0.6 | Cross-adapter protocol/event suites |
 | Tauri workstation distribution | Planned | v0.7 | Signed platform packaging and lifecycle smoke tests |
 | Exact response-cache serving | Speculative | Later | Eligibility, side-effect, scope, expiry, and staleness evidence |
 | Cost-aware model/provider routing | Speculative | Later | Quality and cost evidence kept separate from token reduction |

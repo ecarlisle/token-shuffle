@@ -54,6 +54,7 @@ describe("projectDashboard", () => {
           inputTokens: 118,
           outputTokens: 42,
           cacheReadInputTokens: 80,
+          cacheWriteInputTokens: 20,
           provenance: "provider-reported",
         },
         "2026-06-30T10:00:01.000Z",
@@ -74,6 +75,7 @@ describe("projectDashboard", () => {
       optimizationTokens: 0,
       netTokensAvoided: 0,
       cacheReadInputTokens: 80,
+      cacheWriteInputTokens: 20,
       averageLatencyMs: 1250,
     });
     expect(overview.provenance).toEqual({
@@ -92,6 +94,7 @@ describe("projectDashboard", () => {
         inputTokens: 118,
         outputTokens: 42,
         cacheReadInputTokens: 80,
+        cacheWriteInputTokens: 20,
         literalInputTokensAvoided: 0,
       },
     ]);

@@ -157,7 +157,7 @@ automatic provider retry. Fixtures distinguish hit, miss, and storage failure,
 record retry count zero, and show positive combined session reduction after a
 bounded retrieval.
 
-## v0.6 — Protocol and provider breadth
+## v0.6 — Protocol and provider breadth (released 2026-07-02)
 
 - Anthropic Messages ingress.
 - Multiple upstream adapters and provider-aware cache reporting.
@@ -167,6 +167,13 @@ bounded retrieval.
 
 Exit: protocol suites prove equivalent domain events without flattening
 provider-specific semantics.
+
+Exit evidence: OpenAI-compatible and Anthropic adapters coexist and are selected
+by ingress protocol capability. Anthropic raw bodies, content/tool blocks,
+buffered responses, SSE events, errors, authentication, usage, and cache
+reads/writes retain native semantics while producing shared lifecycle events
+with explicit protocol/provider identity. No retry, translation, or failover is
+implied.
 
 ## v0.7 — Workstation distribution
 

@@ -12,7 +12,7 @@ project. This page is the documentation index.
    - [Pi Coding Agent](getting-started/agents/pi.md)
 4. [Use the web UI](getting-started/web-ui.md)
 
-The user guides describe the stable v0.5 proxy, evidence dashboard, opt-in
+The user guides describe the stable v0.6 proxy, evidence dashboard, opt-in
 deterministic context policies, and retrieval. Later protocol/provider behavior
 remains separated by roadmap milestone.
 
@@ -28,6 +28,7 @@ remains separated by roadmap milestone.
 - [v0.3 release validation](testing/v0.3-release-validation.md)
 - [v0.4 release validation](testing/v0.4-release-validation.md)
 - [v0.5 release validation](testing/v0.5-release-validation.md)
+- [v0.6 release validation](testing/v0.6-release-validation.md)
 
 ## Architecture
 

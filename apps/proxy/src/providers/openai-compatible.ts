@@ -1,6 +1,10 @@
-import { Agent, request, type Dispatcher } from "undici";
+import { Agent, request } from "undici";
 
 import { TokenShuffleError } from "../errors.js";
+import type {
+  InferenceProvider,
+  UpstreamResponse,
+} from "./inference-provider.js";
 
 const RESPONSE_HEADERS = new Set([
   "content-type",
@@ -9,13 +13,9 @@ const RESPONSE_HEADERS = new Set([
   "x-request-id",
 ]);
 
-export interface UpstreamResponse {
-  readonly statusCode: number;
-  readonly body: Dispatcher.ResponseData["body"];
-  readonly headers: Readonly<Record<string, string>>;
-}
-
-export class OpenAiCompatibleProvider {
+export class OpenAiCompatibleProvider implements InferenceProvider {
+  public readonly protocol = "openai-chat-completions" as const;
+  public readonly providerKind = "openai-compatible" as const;
   readonly #dispatcher: Agent;
 
   public constructor(
@@ -42,6 +42,17 @@ export class OpenAiCompatibleProvider {
       signal,
       this.prepareChatCompletions(rawBody),
     );
+  }
+
+  public async execute(
+    rawBody: Buffer,
+    signal: AbortSignal,
+  ): Promise<UpstreamResponse> {
+    return this.chatCompletions(rawBody, signal);
+  }
+
+  public prepareRequest(rawBody: Buffer): Buffer {
+    return this.prepareChatCompletions(rawBody);
   }
 
   public prepareChatCompletions(rawBody: Buffer): Buffer {

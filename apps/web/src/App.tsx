@@ -196,7 +196,7 @@ function OverviewPage(): React.JSX.Element {
       <section className="mt-14">
         <SectionHeading
           title="Token evidence"
-          detail="Daily totals; cache reads are not counted as reduction"
+          detail="Daily totals; cache reads and writes are not counted as reduction"
         />
         <EvidenceChart overview={data} />
       </section>
@@ -228,6 +228,12 @@ function OverviewPage(): React.JSX.Element {
               icon={<ClockIcon size={18} weight="bold" />}
               label="Provider cache reads"
               value={formatCompact(data.summary.cacheReadInputTokens)}
+              detail="Reported separately from reduction"
+            />
+            <EvidenceRow
+              icon={<ClockIcon size={18} weight="bold" />}
+              label="Provider cache writes"
+              value={formatCompact(data.summary.cacheWriteInputTokens)}
               detail="Reported separately from reduction"
             />
             <EvidenceRow
@@ -305,6 +311,7 @@ function RequestPage(): React.JSX.Element {
         <Fact label="Input tokens" value={`${formatNumber(request.inputTokens)} · ${request.provenance}`} />
         <Fact label="Output tokens" value={formatNumber(request.outputTokens)} />
         <Fact label="Cache reads" value={`${formatNumber(request.cacheReadInputTokens)} · separate`} />
+        <Fact label="Cache writes" value={`${formatNumber(request.cacheWriteInputTokens)} · separate`} />
         <Fact label="Latency" value={formatDuration(request.durationMs ?? 0)} />
         <Fact label="Net avoided" value={formatNumber(request.netTokensAvoided)} />
         <Fact label="Policy retries" value={formatNumber(request.policyRetryCount)} />
@@ -541,6 +548,7 @@ function EvidenceChart({ overview }: { overview: DashboardOverview }): React.JSX
         { name: "Input", type: "bar", stack: "usage", data: overview.timeline.map((p) => p.inputTokens) },
         { name: "Output", type: "bar", stack: "usage", data: overview.timeline.map((p) => p.outputTokens) },
         { name: "Cache read", type: "bar", data: overview.timeline.map((p) => p.cacheReadInputTokens) },
+        { name: "Cache write", type: "bar", data: overview.timeline.map((p) => p.cacheWriteInputTokens) },
         { name: "Literal avoided", type: "bar", data: overview.timeline.map((p) => p.literalInputTokensAvoided) },
       ],
     });

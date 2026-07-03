@@ -65,7 +65,7 @@ retain separate ownership.
 Owns the local executable and composition root:
 
 - process lifecycle and loopback binding;
-- Fastify gateway and OpenAI-compatible ingress;
+- Fastify gateway with OpenAI Chat Completions and Anthropic Messages ingress;
 - runtime configuration and secret resolution;
 - execution coordination;
 - initial protocol and provider implementations;
@@ -105,9 +105,10 @@ owns:
 The coordinator depends on interfaces; provider, storage, tokenizer, and cache
 implementations are supplied by the composition root.
 
-In v0.5, the implemented coordinator performs baseline measurement, ordered
+In v0.6, the implemented coordinator performs baseline measurement, ordered
 context policies, one configured provider attempt, cancellation, and event
-emission plus bounded, next-turn retrieval. Candidate route planning,
+emission plus bounded, next-turn retrieval on the OpenAI path. Ingress protocol
+capability selects the OpenAI-compatible or Anthropic adapter. Candidate route planning,
 response-cache lookup, retry, and failover
 in the list above are planned ownership, not current capabilities.
 
@@ -191,7 +192,7 @@ Owns SQLite migrations and repositories for:
 - dashboard projections;
 - retention deletion.
 
-As of v0.5 the event repository, persistent context artifacts, FTS5 index, and
+As of v0.6 the event repository, persistent context artifacts, FTS5 index, and
 retention/deletion are implemented. Cache records and durable projections remain
 future storage responsibilities.
 
@@ -302,7 +303,7 @@ execution coordinator
 gateway serialization --> client
 ```
 
-This candidate/failover flow is not implemented in v0.5. A future failover target may use a
+This candidate/failover flow is not implemented in v0.6. A future failover target may use a
 different tokenizer, context window, tool format, or
 provider capability. Context prepared for one candidate is never blindly reused
 for another.

@@ -14,7 +14,8 @@ client, provider, field, or model works.
 
 ## Current status
 
-Token Shuffle v0.5.0 has a contract-tested buffered and SSE implementation.
+Token Shuffle v0.6.0 has contract-tested OpenAI Chat Completions and Anthropic
+Messages implementations.
 OpenCode 1.17.11 has completed live traffic through OpenCode Zen with
 `deepseek-v4-flash-free`. Pi 0.80.3 subsequently completed a live proxied test
 through the same upstream/model. The event ledger increased from eight to eleven
@@ -47,6 +48,7 @@ test metadata rather than guessed in advance. Follow the
 | Deterministic old-turn compaction | Replay and fake-provider fixtures | Provisional |
 | Session artifacts and FTS5 retrieval | Migration, storage, and fake-provider fixtures | Provisional |
 | Next-turn model retrieval marker | Fake-provider and full-session fixtures | Provisional |
+| Anthropic Messages buffered/SSE forwarding and cache usage | Fake-provider integration tests | Provisional |
 
 The verified live-client combinations were established in observe mode. v0.3
 and v0.4/v0.5 optimize-mode policies are provisional until separate live agent

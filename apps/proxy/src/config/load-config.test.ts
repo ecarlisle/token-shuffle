@@ -38,6 +38,7 @@ describe("parseConfig", () => {
       parseConfig(source, {
         TOKEN_SHUFFLE_ACCESS_TOKEN: "local-secret",
         UPSTREAM_API_KEY: "provider-secret",
+        ANTHROPIC_API_KEY: "anthropic-secret",
         TOKEN_SHUFFLE_FINGERPRINT_KEY: "fingerprint-secret",
       }).configVersion,
     ).toBe(1);
@@ -124,6 +125,25 @@ describe("parseConfig", () => {
     expect(parseConfig(loopback, environment).upstream.baseUrl.protocol).toBe("http:");
     expect(() => parseConfig(remoteHttp, environment)).toThrow(/require HTTPS/);
     expect(() => parseConfig(wildcard, environment)).toThrow(ConfigError);
+  });
+
+  it("resolves an optional Anthropic target without changing the primary target", () => {
+    const configured = validConfig.replace(
+      '"server":',
+      '"anthropicUpstream": { "type": "anthropic", "baseUrl": "https://api.anthropic.test/v1", "apiKey": { "fromEnv": "ANTHROPIC_KEY" } }, "server":',
+    );
+    const config = parseConfig(configured, {
+      LOCAL_TOKEN: "local-secret",
+      PROVIDER_KEY: "provider-secret",
+      ANTHROPIC_KEY: "anthropic-secret",
+    });
+
+    expect(config.upstream.type).toBe("openai-compatible");
+    expect(config.anthropicUpstream).toMatchObject({
+      type: "anthropic",
+      apiKey: "anthropic-secret",
+      anthropicVersion: "2023-06-01",
+    });
   });
 
   it("resolves a relative storage path from the configuration directory", async () => {

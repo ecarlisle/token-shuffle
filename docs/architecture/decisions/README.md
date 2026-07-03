@@ -18,8 +18,9 @@ Proposed, Accepted, Superseded, or Rejected.
 - [0013 — Explicit provider capability normalization](0013-provider-capability-normalization.md)
 - [0014 — Retrieval requests use the next client turn](0014-retrieval-request-and-retry-semantics.md)
 - [0015 — Persistent context artifacts are explicit raw retention](0015-persistent-artifact-privacy.md)
+- [0016 — Negotiate adapters by ingress protocol](0016-protocol-capability-negotiation.md)
 
-ADRs 0001–0015 are **Accepted** and form the reviewed foundation for
+ADRs 0001–0016 are **Accepted** and form the reviewed foundation for
 implementation. Future changes may supersede an ADR but do not silently rewrite
 its history.
 

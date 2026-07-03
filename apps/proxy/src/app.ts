@@ -30,6 +30,8 @@ import {
   validateChatCompletionsRequest,
 } from "./protocol/openai/chat-completions.js";
 import { OpenAiCompatibleProvider } from "./providers/openai-compatible.js";
+import { AnthropicProvider } from "./providers/anthropic.js";
+import { validateAnthropicMessagesRequest } from "./protocol/anthropic/messages.js";
 import type {
   ArtifactMatch,
   ContextArtifact,
@@ -86,6 +88,17 @@ export function buildApp(
     responseBodyTimeoutMs: config.limits.responseBodyTimeoutMs,
     developerRole: config.upstream.compatibility?.developerRole ?? "preserve",
   });
+  const anthropicProvider =
+    config.anthropicUpstream === undefined
+      ? undefined
+      : new AnthropicProvider({
+          baseUrl: config.anthropicUpstream.baseUrl,
+          apiKey: config.anthropicUpstream.apiKey,
+          anthropicVersion: config.anthropicUpstream.anthropicVersion,
+          connectTimeoutMs: config.limits.upstreamConnectTimeoutMs,
+          responseHeaderTimeoutMs: config.limits.responseHeaderTimeoutMs,
+          responseBodyTimeoutMs: config.limits.responseBodyTimeoutMs,
+        });
   const resilientEventSink = new ResilientEventSink(
     options.eventSink ?? new NoopEventSink(),
   );
@@ -100,6 +113,15 @@ export function buildApp(
     options.eventReader,
     config.policies?.retrieval,
   );
+  const anthropicCoordinator =
+    anthropicProvider === undefined
+      ? undefined
+      : new ExecutionCoordinator(
+          anthropicProvider,
+          config.limits.concurrentInferenceRequests,
+          eventSink,
+          "observe",
+        );
   const shutdownController = new AbortController();
   const adminSessions = new AdminSessionManager(config.storage.path);
   const dashboardOrigin = `http://${config.server.host}:${config.server.port}`;
@@ -173,17 +195,47 @@ export function buildApp(
     }
   };
 
+  const authenticateAnthropic = async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ): Promise<void> => {
+    const localApiKey = firstHeaderValue(request.headers["x-api-key"]);
+    const authorization =
+      localApiKey === undefined ? request.headers.authorization : `Bearer ${localApiKey}`;
+    if (!hasValidBearerToken(authorization, config.auth.accessToken)) {
+      sendLocalError(
+        reply,
+        new TokenShuffleError(
+          401,
+          "invalid_authorization",
+          "A valid Token Shuffle bearer token or x-api-key is required.",
+        ),
+      );
+      return;
+    }
+    if (request.headers.origin !== undefined) {
+      sendLocalError(
+        reply,
+        new TokenShuffleError(
+          403,
+          "invalid_request",
+          "Browser-origin inference requests are not accepted.",
+        ),
+      );
+    }
+  };
+
   app.get(
     "/_token-shuffle/status",
     { preHandler: authenticate },
     async () => ({
       mode: config.mode,
       name: "token-shuffle",
-      phase: "v0.5",
+      phase: "v0.6",
       persistence: resilientEventSink.health,
       ready: true,
       streaming: true,
-      version: "0.5.0",
+      version: "0.6.0",
     }),
   );
 
@@ -288,7 +340,7 @@ export function buildApp(
         system: {
           mode: config.mode,
           persistence: resilientEventSink.health,
-          version: "0.5.0",
+          version: "0.6.0",
         },
       };
     },
@@ -368,8 +420,8 @@ export function buildApp(
       reply.header("cache-control", "no-store");
       return {
         mode: config.mode,
-        version: "0.5.0",
-        phase: "v0.5",
+        version: "0.6.0",
+        phase: "v0.6",
         server: {
           host: config.server.host,
           port: config.server.port,
@@ -388,8 +440,14 @@ export function buildApp(
           droppedEvents: resilientEventSink.health.droppedEvents,
         },
         capabilities: {
-          ingress: ["openai-chat-completions"],
-          providers: ["openai-compatible"],
+          ingress: [
+            "openai-chat-completions",
+            ...(anthropicProvider === undefined ? [] : ["anthropic-messages"]),
+          ],
+          providers: [
+            "openai-compatible",
+            ...(anthropicProvider === undefined ? [] : ["anthropic"]),
+          ],
           streaming: true,
           retries: false,
           retrieval: config.policies?.retrieval?.enabled ?? false,
@@ -578,6 +636,82 @@ export function buildApp(
     },
   );
 
+  if (anthropicCoordinator !== undefined) {
+    app.post<{ Body: RawJsonBody }>(
+      "/v1/messages",
+      { preHandler: authenticateAnthropic },
+      async (request, reply) => {
+        validateAnthropicMessagesRequest(request.body);
+        const abortController = new AbortController();
+        const abortUpstream = (): void => abortController.abort();
+        request.raw.once("aborted", abortUpstream);
+        reply.raw.once("close", () => {
+          if (!reply.raw.writableEnded) abortUpstream();
+        });
+        const response = await anthropicCoordinator.execute(
+          request.body,
+          AbortSignal.any([abortController.signal, shutdownController.signal]),
+          firstHeaderValue(request.headers["x-token-shuffle-session-id"]),
+        );
+        if (response === undefined) {
+          throw new TokenShuffleError(
+            429,
+            "overloaded",
+            "The concurrent inference request limit has been reached.",
+          );
+        }
+        try {
+          if (isStreamingRequest(request.body)) {
+            reply.hijack();
+            reply.raw.writeHead(response.statusCode, {
+              ...response.headers,
+              "x-token-shuffle-request-id": response.requestId,
+            });
+            const eventLimit = new SseEventLimit(config.limits.sseEventBytes);
+            let responseBytes = 0;
+            try {
+              for await (const part of response.body) {
+                const chunk = Buffer.isBuffer(part) ? part : Buffer.from(part);
+                response.firstByte();
+                responseBytes += chunk.byteLength;
+                eventLimit.inspect(chunk);
+                if (!reply.raw.write(chunk)) await once(reply.raw, "drain");
+              }
+              reply.raw.end();
+              response.complete(responseBytes);
+            } catch (error) {
+              abortController.abort();
+              response.fail(error);
+              reply.raw.destroy(error as Error);
+            }
+            return;
+          }
+          const chunks: Buffer[] = [];
+          let responseBytes = 0;
+          for await (const part of response.body) {
+            const chunk = Buffer.isBuffer(part) ? part : Buffer.from(part);
+            response.firstByte();
+            chunks.push(chunk);
+            responseBytes += chunk.byteLength;
+          }
+          const body = Buffer.concat(chunks, responseBytes);
+          reply.code(response.statusCode);
+          reply.header("x-token-shuffle-request-id", response.requestId);
+          for (const [name, value] of Object.entries(response.headers)) {
+            reply.header(name, value);
+          }
+          response.complete(responseBytes, readAnthropicUsage(body));
+          return reply.send(body);
+        } catch (error) {
+          response.fail(error);
+          throw error;
+        } finally {
+          response.release();
+        }
+      },
+    );
+  }
+
   app.get(
     "/v1/models",
     { preHandler: authenticate },
@@ -598,11 +732,12 @@ export function buildApp(
 
   app.addHook("preClose", async () => {
     shutdownController.abort();
-    await coordinator.close();
+    await Promise.all([coordinator.close(), anthropicCoordinator?.close()]);
   });
 
   app.addHook("onClose", async () => {
     await provider.close();
+    await anthropicProvider?.close();
     await options.eventSink?.close?.();
   });
 
@@ -641,6 +776,55 @@ function readProviderUsage(body: Buffer): {
       cacheReadInputTokens === undefined
       ? undefined
       : { inputTokens, outputTokens, cacheReadInputTokens };
+  } catch {
+    return undefined;
+  }
+}
+
+function readAnthropicUsage(body: Buffer): {
+  inputTokens?: number;
+  outputTokens?: number;
+  cacheReadInputTokens?: number;
+  cacheWriteInputTokens?: number;
+} | undefined {
+  try {
+    const parsed = JSON.parse(body.toString("utf8")) as {
+      readonly usage?: {
+        readonly input_tokens?: unknown;
+        readonly output_tokens?: unknown;
+        readonly cache_read_input_tokens?: unknown;
+        readonly cache_creation_input_tokens?: unknown;
+      };
+    };
+    const usage = parsed.usage;
+    if (usage === undefined) return undefined;
+    const inputTokens = Number.isSafeInteger(usage.input_tokens)
+      ? (usage.input_tokens as number)
+      : undefined;
+    const outputTokens = Number.isSafeInteger(usage.output_tokens)
+      ? (usage.output_tokens as number)
+      : undefined;
+    const cacheReadInputTokens = Number.isSafeInteger(
+      usage.cache_read_input_tokens,
+    )
+      ? (usage.cache_read_input_tokens as number)
+      : undefined;
+    const cacheWriteInputTokens = Number.isSafeInteger(
+      usage.cache_creation_input_tokens,
+    )
+      ? (usage.cache_creation_input_tokens as number)
+      : undefined;
+    return inputTokens === undefined &&
+      outputTokens === undefined &&
+      cacheReadInputTokens === undefined &&
+      cacheWriteInputTokens === undefined
+      ? undefined
+      : {
+          inputTokens,
+          outputTokens,
+          cacheReadInputTokens,
+          cacheWriteInputTokens,
+        };
   } catch {
     return undefined;
   }

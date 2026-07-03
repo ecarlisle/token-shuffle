@@ -1,7 +1,8 @@
 # Getting started
 
 > **Availability:** The proxy, evidence dashboard, and opt-in deterministic
-> reduction, compaction, and retrieval policies are implemented in v0.5.0.
+> reduction, compaction, retrieval, and native Anthropic Messages ingress are
+> implemented through v0.6.0.
 > OpenCode and Pi with OpenCode Zen are verified; other upstream combinations
 > remain provisional.
 

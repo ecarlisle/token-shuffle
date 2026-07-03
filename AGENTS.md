@@ -21,10 +21,11 @@ Optimize for trustworthiness before feature breadth:
 
 ## Current status
 
-The stable release is **v0.5.0**. **v0.6 is planned but not yet implemented.**
+The stable release is **v0.6.0**. **v0.7 is planned but not yet implemented.**
 
-- The executable exposes authenticated status and buffered/streaming
-  `POST /v1/chat/completions` forwarding.
+- The executable exposes authenticated buffered/streaming
+  `POST /v1/chat/completions` forwarding and optional native
+  `POST /v1/messages` forwarding.
 - Structural observations persist to SQLite without raw prompt/response content.
 - OpenCode 1.17.11 and Pi 0.80.3 with OpenCode Zen are verified. Other upstream
   combinations remain provisional until their matrix entries pass.
@@ -50,6 +51,9 @@ The stable release is **v0.5.0**. **v0.6 is planned but not yet implemented.**
   `token_shuffle_retrieve("query")` marker replayed in the next client request.
   It performs one provider attempt and records hit/miss, injected counts, and
   retry count zero.
+- v0.6 selects OpenAI-compatible or Anthropic adapters by ingress protocol
+  capability. It does not translate between protocols, infer providers from
+  model names, retry, or fail over. Anthropic ingress remains observe-only.
 - The active runtime baseline is Node.js 24.15+ and TypeScript 6.
 
 Do not describe a planned capability as implemented.

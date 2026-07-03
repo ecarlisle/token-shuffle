@@ -1,7 +1,7 @@
 # Request-flow walkthroughs
 
-These walkthroughs explain implemented behavior through v0.5 without requiring source
-code knowledge. Planned v0.5 retrieval is separated at the end.
+These walkthroughs explain implemented behavior through v0.6 without requiring
+source code knowledge.
 
 ## Startup
 
@@ -29,7 +29,8 @@ No provider inference occurs during startup. See
 ```text
 agent -> Fastify ingress -> authorization/limits/validation
       -> execution coordinator -> original request bytes
-      -> OpenAI-compatible provider -> buffered body or SSE
+      -> protocol-capable OpenAI-compatible or Anthropic provider
+      -> buffered body or native SSE
       -> agent
 
 coordinator -> versioned structural events -> resilient sink -> SQLite worker

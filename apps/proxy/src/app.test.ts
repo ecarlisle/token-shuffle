@@ -1031,6 +1031,149 @@ describe("buffered Chat Completions forwarding", () => {
   });
 });
 
+describe("Anthropic Messages forwarding", () => {
+  it("preserves Anthropic content blocks and records provider cache usage", async () => {
+    let receivedBody = Buffer.alloc(0);
+    let apiKey: string | undefined;
+    let version: string | undefined;
+    const baseUrl = await startProvider((request, response) => {
+      apiKey = request.headers["x-api-key"] as string | undefined;
+      version = request.headers["anthropic-version"] as string | undefined;
+      const chunks: Buffer[] = [];
+      request.on("data", (chunk: Buffer) => chunks.push(chunk));
+      request.on("end", () => {
+        receivedBody = Buffer.concat(chunks);
+        response.writeHead(200, { "content-type": "application/json" });
+        response.end(
+          '{"id":"msg_1","type":"message","role":"assistant","content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":12,"output_tokens":2,"cache_read_input_tokens":5,"cache_creation_input_tokens":7}}',
+        );
+      });
+    });
+    const config: RuntimeConfig = {
+      ...createConfig(baseUrl),
+      anthropicUpstream: {
+        type: "anthropic",
+        baseUrl,
+        apiKey: "anthropic-test-key",
+        anthropicVersion: "2023-06-01",
+      },
+    };
+    const eventSink = new RecordingEventSink();
+    const app = buildApp(config, { eventSink });
+    apps.push(app);
+    const rawBody =
+      '{"model":"claude-test","max_tokens":128,"system":"Keep semantics.","messages":[{"role":"user","content":[{"type":"text","text":"hello"},{"type":"tool_result","tool_use_id":"tool_1","content":"result"}]}],"unknown":{"kept":true}}';
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/messages",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": "local-test-token",
+      },
+      payload: rawBody,
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(receivedBody).toEqual(Buffer.from(rawBody));
+    expect(apiKey).toBe("anthropic-test-key");
+    expect(version).toBe("2023-06-01");
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(eventSink.events[0]).toMatchObject({
+      protocol: "anthropic-messages",
+      provider: "anthropic",
+      model: "claude-test",
+    });
+    expect(eventSink.events.find((event) => event.type === "attempt.usage")).toMatchObject({
+      data: {
+        inputTokens: 12,
+        outputTokens: 2,
+        cacheReadInputTokens: 5,
+        cacheWriteInputTokens: 7,
+        provenance: "provider-reported",
+      },
+    });
+  });
+
+  it("preserves Anthropic SSE event bytes and ordering", async () => {
+    const sse = Buffer.from(
+      'event: message_start\ndata: {"type":"message_start"}\n\n' +
+        'event: message_stop\ndata: {"type":"message_stop"}\n\n',
+    );
+    const baseUrl = await startProvider((_request, response) => {
+      response.writeHead(200, { "content-type": "text/event-stream" });
+      response.end(sse);
+    });
+    const config: RuntimeConfig = {
+      ...createConfig(baseUrl),
+      anthropicUpstream: {
+        type: "anthropic",
+        baseUrl,
+        apiKey: "anthropic-test-key",
+        anthropicVersion: "2023-06-01",
+      },
+    };
+    const app = buildApp(config);
+    apps.push(app);
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/messages",
+      headers: authorizedHeaders(),
+      payload: JSON.stringify({
+        model: "claude-test",
+        max_tokens: 64,
+        stream: true,
+        messages: [{ role: "user", content: "hello" }],
+      }),
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.rawPayload).toEqual(sse);
+  });
+
+  it("passes through Anthropic provider errors without failover", async () => {
+    const providerBody = '{"type":"error","error":{"type":"overloaded_error","message":"busy"}}';
+    let calls = 0;
+    const baseUrl = await startProvider((_request, response) => {
+      calls += 1;
+      response.writeHead(529, {
+        "content-type": "application/json",
+        "request-id": "anthropic-request-id",
+      });
+      response.end(providerBody);
+    });
+    const config: RuntimeConfig = {
+      ...createConfig(baseUrl),
+      anthropicUpstream: {
+        type: "anthropic",
+        baseUrl,
+        apiKey: "anthropic-test-key",
+        anthropicVersion: "2023-06-01",
+      },
+    };
+    const app = buildApp(config);
+    apps.push(app);
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/v1/messages",
+      headers: authorizedHeaders(),
+      payload: JSON.stringify({
+        model: "claude-test",
+        max_tokens: 64,
+        messages: [{ role: "user", content: "hello" }],
+      }),
+    });
+
+    expect(response.statusCode).toBe(529);
+    expect(response.body).toBe(providerBody);
+    expect(response.headers["request-id"]).toBe("anthropic-request-id");
+    expect(response.headers["x-token-shuffle-error"]).toBeUndefined();
+    expect(calls).toBe(1);
+  });
+});
+
 describe("model discovery", () => {
   it("forwards authenticated model discovery with only the upstream credential", async () => {
     let authorization: string | undefined;

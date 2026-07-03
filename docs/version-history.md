@@ -10,6 +10,17 @@ real, then mark it released with a date before opening the next version entry.
 For present-tense support status, use the
 [capability matrix](capabilities.md); this file remains a historical record.
 
+## v0.6 — Protocol and provider breadth
+
+**Status:** Released as `v0.6.0` on 2026-07-02
+
+v0.6 adds optional native Anthropic Messages ingress and an Anthropic upstream
+adapter alongside the existing OpenAI-compatible target. Ingress protocol
+capabilities select the adapter without model guessing, translation, retry, or
+failover. Provider-specific authentication, streaming events, errors, usage,
+and cache-read/cache-creation fields remain intact while lifecycle events retain
+their protocol/provider identity.
+
 ## v0.5 — Retrieval and externalized context
 
 **Status:** Released as `v0.5.0` on 2026-07-02

@@ -5,18 +5,18 @@
 ```text
 agent client
     |
-    | OpenAI-compatible HTTP + SSE
+    | OpenAI Chat Completions or Anthropic Messages
     v
 loopback proxy
     |-- ingress validation
     |-- execution coordinator
     |     |-- baseline measurement
     |     |-- ordered context policies
-    |     |-- one configured upstream
+    |     |-- ingress-capable configured target
     |     `-- one provider attempt
     |-- immutable decision events
     v
-inference provider
+OpenAI-compatible or Anthropic provider
 
 event stream --> local SQLite --> local dashboard / replay
 ```
@@ -55,7 +55,8 @@ For narrative startup, observe, optimize, dashboard, and shutdown sequences, see
    provenance.
 4. Apply ordered context policies. In observe mode the prepared request remains
    semantically unchanged; transform uncertainty returns the original context.
-5. Execute one attempt against the one configured upstream and stream without
+5. Select the configured adapter whose native capability matches ingress,
+   execute one attempt, and stream without
    buffering the full response.
 6. Propagate success, upstream failure, or cancellation without an automatic
    retry or failover.
@@ -64,10 +65,11 @@ For narrative startup, observe, optimize, dashboard, and shutdown sequences, see
 The hot path must not wait for dashboard writes. Backpressure and client
 disconnect propagation are first-class integration-test concerns.
 
-The execution coordinator owns this lifecycle. A route planner is not yet
-implemented because v0.5 has one configured upstream. Future retry or failover
-behavior requires a new decision rather than emerging from provider-library
-defaults.
+The execution coordinator owns this lifecycle. v0.6 capability negotiation is
+limited to ingress protocol: Chat Completions selects the OpenAI-compatible
+target and Messages selects Anthropic. A general route planner is not
+implemented. Future retry or failover behavior requires a new decision rather
+than emerging from provider-library defaults.
 
 Observe mode forwards raw valid JSON body bytes unchanged. Authentication,
 hop-by-hop, host, length, cookie, origin, and internal headers follow an explicit

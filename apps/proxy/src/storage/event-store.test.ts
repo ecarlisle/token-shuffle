@@ -65,7 +65,7 @@ describe("SqliteEventStore", () => {
 
     expect(events).toHaveLength(1);
     expect(events[0]).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       requestId: "request-1",
       data: { provenance: "estimate" },
     });
@@ -121,7 +121,7 @@ describe("SqliteEventStore", () => {
       CREATE INDEX events_expiry_idx ON observation_events(expires_at);
       PRAGMA user_version = 1;
     `);
-    const existing = event({ eventId: "existing" });
+    const existing = event({ eventId: "existing", schemaVersion: 1 });
     database
       .prepare(`
         INSERT INTO observation_events

@@ -1,7 +1,7 @@
 # Configure Token Shuffle
 
-> **Availability:** Implemented through v0.5.0. Multi-provider configuration is
-> intentionally deferred.
+> **Availability:** Implemented through v0.6.0. One primary OpenAI-compatible
+> target and one optional Anthropic target may coexist.
 
 ## Configuration location
 
@@ -81,8 +81,25 @@ active default. In a repository checkout, run
 ```
 
 Replace `baseUrl` with the provider's official OpenAI-compatible endpoint. The
-current proxy accepts one upstream and forwards the model ID supplied by the agent.
-Multi-provider routing arrives later in the roadmap.
+primary target forwards the model ID supplied by the agent. v0.6 capability
+selection is protocol-based; general model/provider routing remains later scope.
+
+To enable native Anthropic Messages ingress at `POST /v1/messages`, add:
+
+```json
+"anthropicUpstream": {
+  "type": "anthropic",
+  "baseUrl": "https://api.anthropic.com/v1",
+  "apiKey": { "fromEnv": "ANTHROPIC_API_KEY" },
+  "anthropicVersion": "2023-06-01"
+}
+```
+
+The two adapters coexist. Chat Completions selects the OpenAI-compatible target;
+Messages selects Anthropic. Token Shuffle does not translate, retry, or fail
+over between them. Native Anthropic clients may supply the local Token Shuffle
+token as `x-api-key`; Token Shuffle consumes it and replaces it with the
+configured Anthropic provider key.
 
 `upstream.compatibility.developerRole` defaults to `preserve`. Set it to
 `system` when the selected upstream/model rejects OpenAI `developer` messages,
@@ -194,6 +211,8 @@ The local access token and upstream API key are different credentials:
   and retrieval. Keep this independent random value stable across restarts;
   Token Shuffle never persists or logs it.
 - `UPSTREAM_API_KEY` authenticates Token Shuffle to the provider.
+- `ANTHROPIC_API_KEY` is required only when `anthropicUpstream` is configured
+  and is sent only as the Anthropic `x-api-key`.
 
 Only environment-variable references belong in the configuration. Missing
 variables are startup errors; Token Shuffle must not quietly run without local

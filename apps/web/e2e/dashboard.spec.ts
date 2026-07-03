@@ -15,6 +15,7 @@ const request = {
   netTokensAvoided: 0,
   policyRetryCount: 0,
   cacheReadInputTokens: 80,
+  cacheWriteInputTokens: 20,
   provenance: "provider-reported",
 };
 
@@ -37,6 +38,7 @@ test.beforeEach(async ({ page }) => {
           optimizationTokens: 0,
           netTokensAvoided: 0,
           cacheReadInputTokens: 80,
+          cacheWriteInputTokens: 20,
           averageLatencyMs: 1250,
         },
         provenance: { providerReportedRequests: 1, estimatedRequests: 0 },
@@ -45,6 +47,7 @@ test.beforeEach(async ({ page }) => {
           inputTokens: 118,
           outputTokens: 42,
           cacheReadInputTokens: 80,
+          cacheWriteInputTokens: 20,
           literalInputTokensAvoided: 0,
         }],
         sessions: [{
@@ -60,7 +63,7 @@ test.beforeEach(async ({ page }) => {
         system: {
           mode: "observe",
           persistence: { degraded: false, droppedEvents: 0 },
-          version: "0.5.0",
+          version: "0.6.0",
         },
       }),
     }),
@@ -128,8 +131,8 @@ test.beforeEach(async ({ page }) => {
       contentType: "application/json",
       body: JSON.stringify({
         mode: "optimize",
-        version: "0.5.0",
-        phase: "v0.5",
+        version: "0.6.0",
+        phase: "v0.6",
         server: { host: "127.0.0.1", port: 3210 },
         storage: {
           path: "/synthetic/events.sqlite",
@@ -198,6 +201,7 @@ test("traces overview evidence into a redacted request detail", async ({ page })
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "What the proxy observed." })).toBeVisible();
   await expect(page.getByText("Provider cache reads")).toBeVisible();
+  await expect(page.getByText("Provider cache writes")).toBeVisible();
   await page.getByRole("link", { name: /request-12/i }).click();
   await expect(page.getByRole("heading", { name: "request-1234567" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Structural replay" })).toBeVisible();

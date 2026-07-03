@@ -21,6 +21,7 @@ export interface DashboardSummary {
   readonly optimizationTokens: number;
   readonly netTokensAvoided: number;
   readonly cacheReadInputTokens: number;
+  readonly cacheWriteInputTokens: number;
   readonly averageLatencyMs: number;
 }
 
@@ -36,6 +37,8 @@ export interface DashboardSession {
   readonly literalInputTokensAvoided: number;
   readonly netTokensAvoided: number;
   readonly policyRetryCount: number;
+  readonly cacheReadInputTokens: number;
+  readonly cacheWriteInputTokens: number;
   readonly lastActivity: string;
 }
 
@@ -54,6 +57,7 @@ export interface DashboardRequest {
   readonly netTokensAvoided: number;
   readonly policyRetryCount: number;
   readonly cacheReadInputTokens: number;
+  readonly cacheWriteInputTokens: number;
   readonly provenance: string;
 }
 
@@ -62,6 +66,7 @@ export interface DashboardTimelinePoint {
   readonly inputTokens: number;
   readonly outputTokens: number;
   readonly cacheReadInputTokens: number;
+  readonly cacheWriteInputTokens: number;
   readonly literalInputTokensAvoided: number;
 }
 
@@ -107,6 +112,7 @@ interface MutableRequest
     | "netTokensAvoided"
     | "policyRetryCount"
     | "cacheReadInputTokens"
+    | "cacheWriteInputTokens"
     | "provenance"
   > {
   timestamp: string;
@@ -119,6 +125,7 @@ interface MutableRequest
   netTokensAvoided: number;
   policyRetryCount: number;
   cacheReadInputTokens: number;
+  cacheWriteInputTokens: number;
   provenance: string;
   protocol: string;
   provider: string;
@@ -147,6 +154,7 @@ export function projectDashboard(events: readonly ObservationEvent[]): Dashboard
       optimizationTokens: sum(completed, "optimizationTokens"),
       netTokensAvoided: sum(completed, "netTokensAvoided"),
       cacheReadInputTokens: sum(completed, "cacheReadInputTokens"),
+      cacheWriteInputTokens: sum(completed, "cacheWriteInputTokens"),
       averageLatencyMs:
         latencyValues.length === 0
           ? 0
@@ -241,6 +249,7 @@ function collectRequests(events: readonly ObservationEvent[]): MutableRequest[] 
       netTokensAvoided: 0,
       policyRetryCount: 0,
       cacheReadInputTokens: 0,
+      cacheWriteInputTokens: 0,
       provenance: "estimate",
       structure: {},
       events: [],
@@ -267,6 +276,7 @@ function collectRequests(events: readonly ObservationEvent[]): MutableRequest[] 
       request.inputTokens = numberValue(event.data.inputTokens, request.inputTokens);
       request.outputTokens = numberValue(event.data.outputTokens);
       request.cacheReadInputTokens = numberValue(event.data.cacheReadInputTokens);
+      request.cacheWriteInputTokens = numberValue(event.data.cacheWriteInputTokens);
       request.provenance = stringValue(event.data.provenance, request.provenance);
     } else if (event.type === "request.completed") {
       request.statusCode = numberOrNull(event.data.statusCode);
@@ -304,6 +314,10 @@ function collectSessions(requests: readonly MutableRequest[]): DashboardSession[
         (existing?.netTokensAvoided ?? 0) + request.netTokensAvoided,
       policyRetryCount:
         (existing?.policyRetryCount ?? 0) + request.policyRetryCount,
+      cacheReadInputTokens:
+        (existing?.cacheReadInputTokens ?? 0) + request.cacheReadInputTokens,
+      cacheWriteInputTokens:
+        (existing?.cacheWriteInputTokens ?? 0) + request.cacheWriteInputTokens,
       lastActivity:
         existing === undefined || request.timestamp > existing.lastActivity
           ? request.timestamp
@@ -326,6 +340,8 @@ function collectTimeline(requests: readonly MutableRequest[]): DashboardTimeline
       outputTokens: (existing?.outputTokens ?? 0) + request.outputTokens,
       cacheReadInputTokens:
         (existing?.cacheReadInputTokens ?? 0) + request.cacheReadInputTokens,
+      cacheWriteInputTokens:
+        (existing?.cacheWriteInputTokens ?? 0) + request.cacheWriteInputTokens,
       literalInputTokensAvoided:
         (existing?.literalInputTokensAvoided ?? 0) +
         request.literalInputTokensAvoided,
@@ -350,6 +366,7 @@ function publicRequest(request: MutableRequest): DashboardRequest {
     netTokensAvoided: request.netTokensAvoided,
     policyRetryCount: request.policyRetryCount,
     cacheReadInputTokens: request.cacheReadInputTokens,
+    cacheWriteInputTokens: request.cacheWriteInputTokens,
     provenance: request.provenance,
   };
 }
@@ -374,7 +391,8 @@ function sum(
     | "literalInputTokensAvoided"
     | "optimizationTokens"
     | "netTokensAvoided"
-    | "cacheReadInputTokens",
+    | "cacheReadInputTokens"
+    | "cacheWriteInputTokens",
 ): number {
   return values.reduce((total, value) => total + value[key], 0);
 }

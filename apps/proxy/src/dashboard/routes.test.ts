@@ -81,7 +81,7 @@ describe("dashboard routes", () => {
     expect(overview.statusCode).toBe(200);
     expect(overview.json()).toMatchObject({
       summary: { requests: 0, sessions: 0 },
-      system: { version: "0.5.0" },
+      system: { version: "0.6.0" },
     });
     expect(reused.statusCode).toBe(401);
   });

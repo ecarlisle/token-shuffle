@@ -4,6 +4,23 @@ This project follows Keep a Changelog conventions while it is pre-release.
 
 ## Unreleased
 
+## 0.6.0 - 2026-07-02
+
+### Added
+
+- Optional native Anthropic Messages ingress and Anthropic upstream adapter.
+- Protocol-capability selection across coexisting OpenAI-compatible and
+  Anthropic targets without translation, retry, or failover.
+- Anthropic provider-reported input/output and cache-read/cache-creation
+  accounting, kept separate from literal token reduction.
+- Versioned observation schema v2 with protocol/provider identity while
+  retaining schema-v1 event readability.
+
+### Changed
+
+- Regenerated the workspace lockfile in the declared pnpm 11 format so clean
+  `--frozen-lockfile` installs remain reproducible.
+
 ## 0.5.0 - 2026-07-02
 
 ### Added

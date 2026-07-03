@@ -13,6 +13,7 @@ export interface DashboardRequest {
   netTokensAvoided: number;
   policyRetryCount: number;
   cacheReadInputTokens: number;
+  cacheWriteInputTokens: number;
   provenance: string;
 }
 
@@ -28,6 +29,8 @@ export interface DashboardSession {
   literalInputTokensAvoided: number;
   netTokensAvoided: number;
   policyRetryCount: number;
+  cacheReadInputTokens: number;
+  cacheWriteInputTokens: number;
   lastActivity: string;
 }
 
@@ -42,6 +45,7 @@ export interface DashboardOverview {
     optimizationTokens: number;
     netTokensAvoided: number;
     cacheReadInputTokens: number;
+    cacheWriteInputTokens: number;
     averageLatencyMs: number;
   };
   provenance: {
@@ -53,6 +57,7 @@ export interface DashboardOverview {
     inputTokens: number;
     outputTokens: number;
     cacheReadInputTokens: number;
+    cacheWriteInputTokens: number;
     literalInputTokensAvoided: number;
   }>;
   sessions: DashboardSession[];

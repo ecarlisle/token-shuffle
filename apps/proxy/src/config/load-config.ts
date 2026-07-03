@@ -106,6 +106,17 @@ export function parseConfig(
         developerRole: config.upstream.compatibility?.developerRole ?? "preserve",
       },
     },
+    ...(config.anthropicUpstream === undefined
+      ? {}
+      : {
+          anthropicUpstream: {
+            type: "anthropic" as const,
+            baseUrl: validateUpstream(config.anthropicUpstream.baseUrl),
+            apiKey: resolveSecret(config.anthropicUpstream.apiKey, environment),
+            anthropicVersion:
+              config.anthropicUpstream.anthropicVersion ?? "2023-06-01",
+          },
+        }),
     storage: {
       retainRawContent: false,
       path: config.storage?.path ?? join(dirname(defaultConfigPath()), "events.sqlite"),
